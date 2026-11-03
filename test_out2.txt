@@ -1,0 +1,61 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.15, pytest-8.3.2, pluggy-1.6.0 -- C:\Users\YourNewUsername\AppData\Local\Programs\KiroCrew\resources\backend-dist\kirocrew-backend\python.exe
+rootdir: C:\Users\YourNewUsername\OneDrive\Desktop\New folder\resolveai
+plugins: platformdirs-4.12.4, flask-1.3.0
+collecting ... collected 18 items
+
+tests/test_admin.py::test_admin_can_assign PASSED                        [  5%]
+tests/test_admin.py::test_admin_cannot_resolve_unconfirmed PASSED        [ 11%]
+tests/test_admin.py::test_stats_endpoint PASSED                          [ 16%]
+tests/test_ai.py::test_fallback_returns_dict PASSED                      [ 22%]
+tests/test_ai.py::test_login_keywords_detected PASSED                    [ 27%]
+tests/test_ai.py::test_crash_keywords_detected PASSED                    [ 33%]
+tests/test_ai.py::test_ask_confirmation_set PASSED                       [ 38%]
+tests/test_ai.py::test_ai_service_uses_fallback_without_key PASSED       [ 44%]
+tests/test_auth.py::test_register_success PASSED                         [ 50%]
+tests/test_auth.py::test_duplicate_email FAILED                          [ 55%]
+tests/test_auth.py::test_login_correct PASSED                            [ 61%]
+tests/test_auth.py::test_login_wrong_password PASSED                     [ 66%]
+tests/test_auth.py::test_employee_cannot_access_admin PASSED             [ 72%]
+tests/test_tickets.py::test_create_ticket_format PASSED                  [ 77%]
+tests/test_tickets.py::test_two_tickets_different_ids PASSED             [ 83%]
+tests/test_tickets.py::test_resolve_without_confirmation PASSED          [ 88%]
+tests/test_tickets.py::test_cross_employee_access PASSED                 [ 94%]
+tests/test_tickets.py::test_confirm_resolution PASSED                    [100%]
+
+================================== FAILURES ===================================
+____________________________ test_duplicate_email _____________________________
+tests\test_auth.py:40: in test_duplicate_email
+    assert "employee/dashboard" not in location, \
+E   AssertionError: Duplicate email should not redirect to dashboard, got: /employee/dashboard
+E   assert 'employee/dashboard' not in '/employee/dashboard'
+E     
+E     'employee/dashboard' is contained here:
+E       /employee/dashboard
+============================== warnings summary ===============================
+tests/test_admin.py: 11 warnings
+tests/test_auth.py: 1 warning
+tests/test_tickets.py: 15 warnings
+  C:\Users\YourNewUsername\AppData\Local\Programs\KiroCrew\resources\backend-dist\kirocrew-backend\Lib\site-packages\sqlalchemy\sql\schema.py:3599: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+tests/test_admin.py::test_admin_can_assign
+tests/test_admin.py::test_admin_cannot_resolve_unconfirmed
+tests/test_admin.py::test_stats_endpoint
+tests/test_admin.py::test_stats_endpoint
+  C:\Users\YourNewUsername\OneDrive\Desktop\New folder\resolveai\services\ticket_service.py:519: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    .where(Ticket.created_at >= datetime.utcnow() - timedelta(days=30))
+
+tests/test_admin.py::test_admin_can_assign
+tests/test_tickets.py::test_confirm_resolution
+  C:\Users\YourNewUsername\OneDrive\Desktop\New folder\resolveai\services\ticket_service.py:173: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    ticket.updated_at = datetime.utcnow()
+
+tests/test_tickets.py::test_confirm_resolution
+  C:\Users\YourNewUsername\OneDrive\Desktop\New folder\resolveai\services\ticket_service.py:175: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    ticket.resolved_at = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_auth.py::test_duplicate_email - AssertionError: Duplicate e...
+================== 1 failed, 17 passed, 34 warnings in 4.24s ==================
