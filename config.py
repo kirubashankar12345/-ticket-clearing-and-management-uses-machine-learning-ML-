@@ -10,11 +10,15 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 def resolve_database_url() -> str:
     database_url = os.environ.get("DATABASE_URL")
     if not database_url:
-        return "sqlite:///" + os.path.join(basedir, "instance", "resolveai.db")
+        database_url = "sqlite:///" + os.path.join(basedir, "instance", "resolveai.db")
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
     if database_url.startswith("sqlite:///"):
         relative_path = database_url[len("sqlite:///") :]
-        if relative_path and not os.path.isabs(relative_path):
-            return "sqlite:///" + os.path.abspath(os.path.join(basedir, relative_path))
+        if relative_path:
+            abs_path = os.path.abspath(relative_path) if os.path.isabs(relative_path) else os.path.abspath(os.path.join(basedir, relative_path))
+            os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+            return "sqlite:///" + abs_path
     return database_url
 
 
@@ -37,28 +41,17 @@ class Config:
     TICKETS_PER_PAGE = 20
     AI_ROUTING_THRESHOLD = int(os.environ.get("AI_ROUTING_THRESHOLD", "5"))
     AI_ROUTING_WINDOW_MINUTES = int(os.environ.get("AI_ROUTING_WINDOW_MINUTES", "60"))
+    SQLALCHEMY_DATABASE_URI = resolve_database_url()
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
     SESSION_COOKIE_SECURE = False
-    SQLALCHEMY_DATABASE_URI = resolve_database_url()
 
 
 class ProductionConfig(Config):
     DEBUG = False
     SESSION_COOKIE_SECURE = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
-
-    def __init__(self):
-        if not os.environ.get("SECRET_KEY"):
-            raise RuntimeError(
-                "SECRET_KEY environment variable must be set in production."
-            )
-        if not self.SQLALCHEMY_DATABASE_URI:
-            raise RuntimeError(
-                "DATABASE_URL environment variable must be set in production."
-            )
 
 
 class TestingConfig(Config):
