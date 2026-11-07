@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register — ResolveAI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body style="background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:100vh;">
+
+<div style="width:100%;max-width:440px;padding:24px;">
+  <div style="text-align:center;margin-bottom:28px;">
+    <a href="{{ url_for('main.landing') }}" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--text-primary);">
+      <div class="brand-icon">
+        <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+      </div>
+      <span style="font-weight:700;font-size:1.2rem;">ResolveAI</span>
+    </a>
+    <h1 style="font-size:1.4rem;font-weight:700;margin-top:20px;margin-bottom:6px;">Create your account</h1>
+    <p style="color:var(--text-secondary);font-size:0.875rem;">Start resolving software issues with AI</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ 'danger' if category == 'error' else category }}" style="margin-bottom:16px;">
+        <span>{{ message }}</span>
+        <button class="alert-close">&times;</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card">
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          {{ form.name.label(class="form-label") }}
+          {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Jane Smith", autocomplete="name") }}
+          {% for err in form.name.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.email.label(class="form-label") }}
+          {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="jane@company.com", autocomplete="email") }}
+          {% for err in form.email.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.department.label(class="form-label") }}
+          {{ form.department(class="form-control" + (" is-invalid" if form.department.errors else ""), placeholder="e.g. Engineering, Marketing") }}
+          {% for err in form.department.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Min 8 chars, 1 uppercase, 1 number", autocomplete="new-password") }}
+          <div class="form-text">Must contain at least 8 characters, one uppercase letter, and one number.</div>
+          {% for err in form.password.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" style="margin-top:8px;">
+          <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+          Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <p style="text-align:center;margin-top:20px;font-size:0.875rem;color:var(--text-secondary);">
+    Already have an account?
+    <a href="{{ url_for('auth.login') }}">Sign in</a>
+  </p>
+  <p style="text-align:center;margin-top:8px;font-size:0.85rem;">
+    <a href="{{ url_for('main.landing') }}" style="color:var(--text-muted);">← Back to home</a>
+  </p>
+</div>
+
+<script>
+  lucide.createIcons();
+  document.querySelectorAll('.alert-close').forEach(function(btn) {
+    btn.addEventListener('click', function() { btn.closest('.alert').remove(); });
+  });
+</script>
+</body>
+</html>

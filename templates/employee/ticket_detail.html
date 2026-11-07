@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.ticket_id }}{% endblock %}
+{% block page_title %}Ticket {{ ticket.ticket_id }}{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('employee.raise_ticket') }}" class="nav-item {% if request.endpoint == 'employee.raise_ticket' %}active{% endif %}" style="font-weight:700;color:#10b981;">
+    <i data-lucide="plus-circle"></i> Raise Ticket
+  </a>
+  <a href="{{ url_for('employee.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('employee.chat') }}" class="nav-item">
+    <i data-lucide="message-circle"></i> AI Support Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="nav-item active">
+    <i data-lucide="ticket"></i> My Tickets
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('employee.profile') }}" class="nav-item">
+    <i data-lucide="user"></i> Profile
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="ticket-detail-header">
+  <div>
+    <a href="{{ url_for('employee.tickets') }}" class="ticket-back-link">
+      <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> All tickets
+    </a>
+    <div class="ticket-detail-id">{{ ticket.ticket_id }}</div>
+    <h1 class="ticket-detail-title">{{ ticket.issue_description[:100] }}{% if ticket.issue_description|length > 100 %}…{% endif %}</h1>
+    <p class="ticket-detail-subtitle">Opened {{ ticket.created_at.strftime('%B %d, %Y at %H:%M') if ticket.created_at else '—' }}</p>
+  </div>
+  <div class="ticket-detail-badges">
+    <span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span>
+    <span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }} priority</span>
+    {% if ticket.resolution_method|lower == 'ai' %}<span class="badge badge-success">Resolved by AI</span>{% endif %}
+    {% if ticket.employee_confirmed %}<span class="badge badge-success">Confirmed by you</span>{% endif %}
+  </div>
+</div>
+
+<style>
+  @media (max-width: 768px) {
+    .resolution-side-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+
+<div class="ticket-detail-layout">
+
+  <!-- Main column -->
+  <div>
+    {% if ticket.status == 'Closed' %}
+    <!-- OFFICIAL TICKET CLOSED BANNER WITH ADMIN NAME AND EMPLOYEE ID -->
+    <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:20px 24px;margin-bottom:20px;color:#fff;box-shadow:0 6px 20px rgba(15,23,42,0.25);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;background:#10b981;border-radius:10px;display:grid;place-items:center;color:#fff;">
+            <i data-lucide="lock" style="width:22px;height:22px;"></i>
+          </div>
+          <div>
+            <span style="font-size:11px;font-weight:800;letter-spacing:1px;color:#34d399;text-transform:uppercase;">OFFICIAL TICKET CLOSURE RECORD</span>
+            <h2 style="font-size:1.25rem;font-weight:800;margin:2px 0 0;color:#fff;">Your Ticket Has Been Officially CLOSED</h2>
+          </div>
+        </div>
+        <span class="badge" style="background:#10b981;color:#fff;font-size:12px;font-weight:800;padding:6px 16px;border-radius:99px;">
+          🔒 STATUS: CLOSED
+        </span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;background:rgba(255,255,255,0.06);padding:16px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);">
+        <!-- CLOSED BY (ADMIN) -->
+        <div style="display:flex;align-items:center;gap:12px;border-right:1px solid rgba(255,255,255,0.1);padding-right:12px;">
+          <div style="width:40px;height:40px;background:#3b82f6;border-radius:10px;display:grid;place-items:center;color:#fff;flex-shrink:0;">
+            <i data-lucide="shield-check" style="width:22px;height:22px;"></i>
+          </div>
+          <div>
+            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">CLOSED BY (ADMINISTRATOR)</span>
+            <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;margin:2px 0;">
+              {{ ticket.closed_by_name or 'Admin User' }}
+              <span class="badge" style="background:#e0e7ff;color:#1e1b4b;font-size:11px;font-weight:800;margin-left:6px;">
+                Admin / Employee ID: #{{ ticket.closed_by_id or 1 }}
+              </span>
+            </div>
+            <div style="font-size:12px;color:#cbd5e1;">{{ ticket.closed_by_email or 'admin@resolveai.com' }}</div>
+            <small style="color:#60a5fa;font-weight:700;">{{ ticket.closed_by_role or 'IT Support Administrator' }}</small>
+          </div>
+        </div>
+
+        <!-- CLOSED FOR (YOU / EMPLOYEE) -->
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;background:#64748b;border-radius:10px;display:grid;place-items:center;color:#fff;flex-shrink:0;">
+            <i data-lucide="user" style="width:22px;height:22px;"></i>
+          </div>
+          <div>
+            <span style="font-size:10px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">CLOSED FOR (REQUESTING EMPLOYEE)</span>
+            <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;margin:2px 0;">
+              {{ ticket.employee_name }}
+              <span class="badge" style="background:#f1f5f9;color:#334155;font-size:11px;font-weight:700;margin-left:6px;">
+                Employee ID: #{{ ticket.employee_id }}
+              </span>
+            </div>
+            <div style="font-size:12px;color:#cbd5e1;">{{ ticket.employee_email }}</div>
+            {% if ticket.closed_at %}
+            <small style="color:#94a3b8;">Closed on {{ ticket.closed_at.strftime('%B %d, %Y at %H:%M') }}</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if ticket.closing_notes %}
+      <div style="margin-top:14px;background:rgba(255,255,255,0.08);border-radius:8px;padding:12px 16px;border-left:4px solid #10b981;">
+        <span style="font-size:11px;font-weight:800;color:#a7f3d0;text-transform:uppercase;">ADMIN CLOSING NOTES:</span>
+        <p style="margin:4px 0 0;font-size:0.9rem;color:#f1f5f9;line-height:1.5;">{{ ticket.closing_notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if ticket.status in ('Resolved', 'Closed') %}
+    <!-- ============================================================= -->
+    <!-- TICKET SOLUTION & CLEARANCE ATTRIBUTION (WHO CLEARED + SOLUTION) -->
+    <!-- ============================================================= -->
+    <div class="card mb-20" style="border:1.5px solid {% if ticket.resolution_method == 'AI' %}#c7d2fe{% else %}#a7f3d0{% endif %};border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.05);">
+      
+      <!-- WHO CLEARED THE TICKET (ENGINEER / RESOLVER & EMPLOYEE ID) -->
+      <div style="background:{% if ticket.resolution_method == 'AI' %}#f8faff{% else %}#f0fdf4{% endif %};padding:18px 22px;border-bottom:1px solid {% if ticket.resolution_method == 'AI' %}#e0e7ff{% else %}#bbf7d0{% endif %};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:46px;height:46px;border-radius:12px;background:{% if ticket.resolution_method == 'AI' %}linear-gradient(135deg,#6366f1,#8b5cf6){% else %}linear-gradient(135deg,#10b981,#059669){% endif %};color:#fff;display:grid;place-items:center;flex-shrink:0;">
+            <i data-lucide="{% if ticket.resolution_method == 'AI' %}bot{% else %}user-check{% endif %}" style="width:24px;height:24px;"></i>
+          </div>
+          <div>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:0.8px;color:{% if ticket.resolution_method == 'AI' %}#4f46e5{% else %}#047857{% endif %};text-transform:uppercase;">
+              WHO CLEARED THE TICKET
+            </span>
+            <div style="font-size:1.15rem;font-weight:800;color:#0f172a;line-height:1.2;margin:2px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>
+                {% if ticket.resolution_method == 'AI' %}
+                  {{ ticket.resolved_by_name or 'ResolveAI Automated Engine' }}
+                {% else %}
+                  {{ ticket.resolved_by_name or (ticket.assigned_engineer.name if ticket.assigned_engineer else (ticket.closed_by_name or 'Support Engineer')) }}
+                {% endif %}
+              </span>
+              {% if ticket.resolution_method != 'AI' %}
+                <span class="badge" style="background:#e0e7ff;color:#3730a3;font-size:11.5px;font-weight:800;border:1px solid #c7d2fe;padding:2px 8px;">
+                  Employee ID: #{{ ticket.resolved_by_id or (ticket.assigned_engineer_id if ticket.assigned_engineer else (ticket.closed_by_id or 1)) }}
+                </span>
+              {% else %}
+                <span class="badge" style="background:#ede9fe;color:#5b21b6;font-size:11px;font-weight:700;">AI Support Engine</span>
+              {% endif %}
+            </div>
+            <div style="font-size:12px;color:#64748b;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span>Role: <strong>{{ ticket.resolved_by_role or ('AI Support Engine' if ticket.resolution_method == 'AI' else 'Support Engineer') }}</strong></span>
+              {% if ticket.resolved_by_email %}
+                <span>· {{ ticket.resolved_by_email }}</span>
+              {% endif %}
+              {% if ticket.resolved_at %}
+                <span>· Cleared on <strong>{{ ticket.resolved_at.strftime('%B %d, %Y at %H:%M') }}</strong></span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div>
+          <span class="badge" style="background:{% if ticket.resolution_method == 'AI' %}#f3e8ff{% else %}#ecfdf5{% endif %};color:{% if ticket.resolution_method == 'AI' %}#6b21a8{% else %}#047857{% endif %};border:1.5px solid {% if ticket.resolution_method == 'AI' %}#d8b4fe{% else %}#a7f3d0{% endif %};padding:6px 14px;font-size:12px;font-weight:800;border-radius:8px;display:inline-flex;align-items:center;gap:6px;">
+            <i data-lucide="{% if ticket.resolution_method == 'AI' %}bot{% else %}check-circle{% endif %}" style="width:15px;height:15px;"></i>
+            {% if ticket.resolution_method == 'AI' %}✦ AI CLEARED{% else %}✓ CLEARED BY ENGINEER{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <!-- THE SOLUTION OF THE PROBLEM -->
+      <div class="card-body" style="padding:24px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <i data-lucide="check-circle" style="color:#059669;width:20px;height:20px;"></i>
+          <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:#0f172a;">Solution of the Problem</h3>
+        </div>
+        
+        <div style="background:{% if ticket.resolution_method == 'AI' %}#f8faff{% else %}#f0fdf4{% endif %};border:1.5px solid {% if ticket.resolution_method == 'AI' %}#c7d2fe{% else %}#a7f3d0{% endif %};border-radius:10px;padding:20px;font-size:0.95rem;line-height:1.8;color:#0f172a;white-space:pre-wrap;">
+          {%- if ticket.resolution_notes -%}
+            {{ ticket.resolution_notes }}
+          {%- elif ticket.ai_recommendation -%}
+            {{ ticket.ai_recommendation }}
+          {%- else -%}
+            The issue has been investigated and cleared by the support team. All related services are confirmed operational.
+          {%- endif -%}
+        </div>
+
+        <!-- 7-day Reopen Option -->
+        <div style="margin-top:20px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div style="font-size:12.5px;color:#475569;">
+            💡 Please verify the solution works. If the issue persists, you may reopen this ticket.
+          </div>
+          <form method="POST" action="{{ url_for('employee.reopen_ticket', ticket_id=ticket.ticket_id) }}" style="margin:0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Reopen this ticket?')" style="font-size:12px;padding:6px 14px;">
+              <i data-lucide="rotate-ccw" style="width:13px;height:13px;"></i> Reopen Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <!-- Active ticket details card for unconfirmed/open tickets -->
+    <div class="card mb-16">
+      <div class="card-header">
+        <span class="card-title">Issue details</span>
+      </div>
+      <div class="card-body">
+        <p class="ticket-issue-description">{{ ticket.issue_description }}</p>
+
+        {% if ticket.ai_recommendation %}
+        <div class="ticket-ai-recommendation">
+          <div class="ticket-ai-recommendation-title">
+            <i data-lucide="bot" style="width:14px;height:14px;"></i> AI Recommendation
+          </div>
+          <p>{{ ticket.ai_recommendation }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Confirmation / Rejection actions -->
+        {% if ticket.status in ['Open','In Progress','Waiting for Employee'] and not ticket.employee_confirmed %}
+        <div class="ticket-resolution-actions">
+          {% if ticket.routing_method == 'ai' %}
+          <div class="ticket-ai-clear">
+            <div class="ticket-ai-clear-copy"><strong>Continue with ResolveAI</strong><span>ResolveAI provides troubleshooting and waits for your confirmation before resolving this ticket.</span></div>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('employee.chat', ticket_id=ticket.ticket_id) }}"><i data-lucide="bot" style="width:15px;height:15px;"></i> Open AI chat</a>
+          </div>
+          {% else %}
+          <div class="ticket-ai-clear">
+            <div class="ticket-ai-clear-copy"><strong>Manual support is handling this ticket</strong><span>An admin or assigned engineer will investigate and update the ticket when the issue is resolved.</span></div>
+          </div>
+          {% endif %}
+          {% if ticket.routing_method == 'ai' and ticket.status == 'Waiting for Employee' %}
+          <div class="ticket-employee-confirm">
+          <p class="ticket-action-heading">Already fixed?</p>
+          <div class="d-flex gap-8" style="flex-wrap:wrap;">
+            <form method="POST" action="{{ url_for('employee.confirm_resolution', ticket_id=ticket.ticket_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-success">
+                <i data-lucide="check" style="width:15px;height:15px;"></i>
+                Yes, it's fixed
+              </button>
+            </form>
+            <button class="btn btn-secondary" onclick="document.getElementById('reject-form').style.display='block';this.style.display='none';">
+              <i data-lucide="x" style="width:15px;height:15px;"></i>
+              No, still broken
+            </button>
+          </div>
+          <form method="POST" action="{{ url_for('employee.reject_resolution', ticket_id=ticket.ticket_id) }}" id="reject-form" style="display:none;margin-top:12px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+              <label class="form-label">What's still happening?</label>
+              <textarea name="description" class="form-control" rows="3" placeholder="Describe what's still broken..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-danger">Submit Rejection</button>
+          </form>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Sidebar info -->
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Ticket Info</span></div>
+      <div class="card-body" style="font-size:0.875rem;">
+        <div class="ticket-info-list">
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">TICKET ID</div>
+            <strong>{{ ticket.ticket_id }}</strong>
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">STATUS</div>
+            <span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span>
+          </div>
+          {% if ticket.resolution_method %}<div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">RESOLVED BY</div>{{ 'ResolveAI' if ticket.resolution_method|lower == 'ai' else 'Manual support' }}</div>{% endif %}
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">PRIORITY</div>
+            <span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span>
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CATEGORY</div>
+            {{ (ticket.category or 'general')|replace('_',' ')|title }}
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">ASSIGNED TO</div>
+            {% if ticket.assigned_engineer %}
+              {{ ticket.assigned_engineer.name }}
+            {% else %}
+              <span class="text-muted">Unassigned</span>
+            {% endif %}
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CREATED</div>
+            {{ ticket.created_at.strftime('%b %d, %Y') if ticket.created_at else '—' }}
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">LAST UPDATED</div>
+            {{ ticket.updated_at.strftime('%b %d, %Y') if ticket.updated_at else '—' }}
+          </div>
+          {% if ticket.resolved_at %}
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">RESOLVED</div>
+            {{ ticket.resolved_at.strftime('%b %d, %Y') }}
+          </div>
+          {% endif %}
+          {% if ticket.closed_at %}
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CLOSED BY</div>
+            <strong>{{ ticket.closed_by_name or 'Admin User' }}</strong>
+            <br>
+            <span class="badge" style="background:#e0e7ff;color:#3730a3;font-size:10.5px;font-weight:800;">
+              Admin / Employee ID: #{{ ticket.closed_by_id or 1 }}
+            </span>
+          </div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CLOSED ON</div>
+            {{ ticket.closed_at.strftime('%b %d, %Y') }}
+          </div>
+          {% endif %}
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">SLA</div>
+            <span data-sla="{{ ticket.created_at.isoformat() if ticket.created_at else '' }}"
+                  data-status="{{ ticket.status }}"
+                  data-sla-hours="24">Calculating…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}

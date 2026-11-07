@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('employee.raise_ticket') }}" class="nav-item {% if request.endpoint == 'employee.raise_ticket' %}active{% endif %}" style="font-weight:700;color:#10b981;">
+    <i data-lucide="plus-circle"></i> Raise Ticket
+  </a>
+  <a href="{{ url_for('employee.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('employee.chat') }}" class="nav-item">
+    <i data-lucide="message-circle"></i> AI Support Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> My Tickets
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('employee.profile') }}" class="nav-item active">
+    <i data-lucide="user"></i> Profile
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>My Profile</h1>
+  <p>Update your name and department.</p>
+</div>
+
+<div style="max-width:520px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Personal Information</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+        <div class="user-avatar" style="width:60px;height:60px;font-size:1.4rem;">
+          {{ current_user.name[0].upper() if current_user.name else '?' }}
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:1.05rem;">{{ current_user.name }}</div>
+          <div class="text-muted" style="font-size:0.85rem;">{{ current_user.email }}</div>
+          <span class="badge badge-info" style="margin-top:4px;">{{ current_user.role|title }}</span>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('employee.profile') }}">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          {{ form.name.label(class="form-label") }}
+          {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+          {% for err in form.name.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+          <div class="form-text">Email cannot be changed. Contact admin if needed.</div>
+        </div>
+
+        <div class="form-group">
+          {{ form.department.label(class="form-label") }}
+          {{ form.department(class="form-control" + (" is-invalid" if form.department.errors else "")) }}
+          {% for err in form.department.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <input type="text" class="form-control" value="{{ current_user.role|title }}" disabled>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Member Since</label>
+          <input type="text" class="form-control"
+            value="{{ current_user.created_at.strftime('%B %d, %Y') if current_user.created_at else '—' }}"
+            disabled>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="save" style="width:15px;height:15px;"></i>
+          Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

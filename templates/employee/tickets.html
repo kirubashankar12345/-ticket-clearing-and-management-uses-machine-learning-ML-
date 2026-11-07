@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}My Tickets{% endblock %}
+{% block page_title %}My Tickets{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('employee.raise_ticket') }}" class="nav-item {% if request.endpoint == 'employee.raise_ticket' %}active{% endif %}" style="font-weight:700;color:#10b981;">
+    <i data-lucide="plus-circle"></i> Raise Ticket
+  </a>
+  <a href="{{ url_for('employee.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('employee.chat') }}" class="nav-item">
+    <i data-lucide="message-circle"></i> AI Support Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="nav-item active">
+    <i data-lucide="ticket"></i> My Tickets
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('employee.profile') }}" class="nav-item">
+    <i data-lucide="user"></i> Profile
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-between align-center">
+  <div>
+    <h1>My Tickets</h1>
+    <p>Track and manage your support tickets.</p>
+  </div>
+  <a href="{{ url_for('employee.chat') }}" class="btn btn-primary">
+    <i data-lucide="plus" style="width:16px;height:16px;"></i>
+    New Chat
+  </a>
+</div>
+
+<div class="card">
+  <!-- Filters -->
+  <form method="GET" action="{{ url_for('employee.tickets') }}">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <i data-lucide="search" style="width:15px;height:15px;color:var(--text-muted);"></i>
+        <input type="text" class="search-input" name="search" value="{{ filters.search }}" placeholder="Search tickets...">
+      </div>
+      <div class="filter-group">
+        <label>Status:</label>
+        <select name="status" class="filter-select filter-auto-submit">
+          <option value="all" {% if filters.status == 'all' %}selected{% endif %}>All</option>
+          <option value="Open" {% if filters.status == 'Open' %}selected{% endif %}>Open</option>
+          <option value="In Progress" {% if filters.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Waiting for Employee" {% if filters.status == 'Waiting for Employee' %}selected{% endif %}>Waiting</option>
+          <option value="Escalated" {% if filters.status == 'Escalated' %}selected{% endif %}>Escalated</option>
+          <option value="Resolved" {% if filters.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+          <option value="Closed" {% if filters.status == 'Closed' %}selected{% endif %}>Closed</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Priority:</label>
+        <select name="priority" class="filter-select filter-auto-submit">
+          <option value="all" {% if filters.priority == 'all' %}selected{% endif %}>All</option>
+          <option value="Urgent" {% if filters.priority == 'Urgent' %}selected{% endif %}>Urgent</option>
+          <option value="High" {% if filters.priority == 'High' %}selected{% endif %}>High</option>
+          <option value="Normal" {% if filters.priority == 'Normal' %}selected{% endif %}>Normal</option>
+          <option value="Low" {% if filters.priority == 'Low' %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Sort:</label>
+        <select name="sort" class="filter-select filter-auto-submit">
+          <option value="created_at" {% if filters.sort == 'created_at' %}selected{% endif %}>Newest</option>
+          <option value="updated_at" {% if filters.sort == 'updated_at' %}selected{% endif %}>Last Updated</option>
+          <option value="priority" {% if filters.sort == 'priority' %}selected{% endif %}>Priority</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm">
+        <i data-lucide="filter" style="width:14px;height:14px;"></i>
+        Filter
+      </button>
+    </div>
+  </form>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket ID</th>
+          <th>Issue</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in pagination.items %}
+        <tr>
+          <td>
+            <a href="{{ url_for('employee.ticket_detail', ticket_id=ticket.ticket_id) }}" class="fw-600 text-accent">
+              {{ ticket.ticket_id }}
+            </a>
+          </td>
+          <td style="max-width:260px;">
+            <span title="{{ ticket.issue_description }}">
+              {{ ticket.issue_description[:65] }}{% if ticket.issue_description|length > 65 %}…{% endif %}
+            </span>
+          </td>
+          <td>{{ (ticket.category or 'general')|replace('_',' ')|title }}</td>
+          <td><span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
+          <td>
+            <span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span>
+            {% if ticket.status == 'Resolved' %}
+              <small style="display:block;font-size:10.5px;color:#047857;margin-top:3px;font-weight:700;">
+                ✓ Cleared by {{ ticket.resolved_by_name or ('ResolveAI' if ticket.resolution_method == 'AI' else 'Support') }}
+              </small>
+            {% endif %}
+          </td>
+          <td class="text-muted" style="white-space:nowrap;">
+            {{ ticket.created_at.strftime('%b %d, %Y') if ticket.created_at else '—' }}
+          </td>
+          <td>
+            <a href="{{ url_for('employee.ticket_detail', ticket_id=ticket.ticket_id) }}" class="btn btn-secondary btn-sm">
+              View
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">
+            No tickets found.
+            {% if filters.search or filters.status != 'all' or filters.priority != 'all' %}
+              <a href="{{ url_for('employee.tickets') }}">Clear filters</a>
+            {% else %}
+              <a href="{{ url_for('employee.chat') }}">Start a support chat</a> to create your first ticket.
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('employee.tickets', page=pagination.prev_num, status=filters.status, priority=filters.priority, search=filters.search, sort=filters.sort) }}" class="page-link">
+        <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+      </a>
+    {% else %}
+      <span class="page-link disabled"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></span>
+    {% endif %}
+
+    {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+      {% if p %}
+        <a href="{{ url_for('employee.tickets', page=p, status=filters.status, priority=filters.priority, search=filters.search, sort=filters.sort) }}"
+           class="page-link {{ 'active' if p == pagination.page else '' }}">{{ p }}</a>
+      {% else %}
+        <span class="page-link disabled">…</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+      <a href="{{ url_for('employee.tickets', page=pagination.next_num, status=filters.status, priority=filters.priority, search=filters.search, sort=filters.sort) }}" class="page-link">
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+      </a>
+    {% else %}
+      <span class="page-link disabled"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></span>
+    {% endif %}
+  </div>
+  <div style="text-align:center;font-size:0.78rem;color:var(--text-muted);padding-bottom:12px;">
+    Showing {{ pagination.items|length }} of {{ pagination.total }} tickets
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}

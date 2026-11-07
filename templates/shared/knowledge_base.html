@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Base{% endblock %}
+{% block page_title %}Knowledge Base{% endblock %}
+
+{% block sidebar %}
+  {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> Admin Dashboard
+    </a>
+  {% elif current_user.role == 'engineer' %}
+    <a href="{{ url_for('engineer.dashboard') }}" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> My Dashboard
+    </a>
+  {% else %}
+    <a href="{{ url_for('employee.dashboard') }}" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> Overview
+    </a>
+    <a href="{{ url_for('employee.chat') }}" class="nav-item">
+      <i data-lucide="message-circle"></i> AI Support Chat
+    </a>
+    <a href="{{ url_for('employee.tickets') }}" class="nav-item">
+      <i data-lucide="ticket"></i> My Tickets
+    </a>
+  {% endif %}
+  <a href="{{ url_for('kb.index') }}" class="nav-item active">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Knowledge Base</h1>
+  <p>Troubleshooting guides and solutions for common software issues.</p>
+</div>
+
+<!-- Search -->
+<div class="card mb-24">
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('kb.index') }}">
+      <div class="d-flex gap-8" style="flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;" class="filter-group">
+          <i data-lucide="search" style="width:15px;height:15px;color:var(--text-muted);"></i>
+          <input type="text" name="q" class="search-input" style="width:100%;"
+            value="{{ query }}" placeholder="Search articles...">
+        </div>
+        <div class="filter-group">
+          <label>Category:</label>
+          <select name="category" class="filter-select">
+            <option value="">All Categories</option>
+            <option value="login" {{ 'selected' if category == 'login' }}>Login</option>
+            <option value="password" {{ 'selected' if category == 'password' }}>Password</option>
+            <option value="crashes" {{ 'selected' if category == 'crashes' }}>App Crashes</option>
+            <option value="api_errors" {{ 'selected' if category == 'api_errors' }}>API Errors</option>
+            <option value="database" {{ 'selected' if category == 'database' }}>Database</option>
+            <option value="installation" {{ 'selected' if category == 'installation' }}>Installation</option>
+            <option value="permissions" {{ 'selected' if category == 'permissions' }}>Permissions</option>
+            <option value="web_bugs" {{ 'selected' if category == 'web_bugs' }}>Web Bugs</option>
+            <option value="general" {{ 'selected' if category == 'general' }}>General</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        {% if query or category %}
+          <a href="{{ url_for('kb.index') }}" class="btn btn-secondary btn-sm">Clear</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Articles grid -->
+{% if articles %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+  {% for art in articles %}
+  <a href="{{ url_for('kb.article', slug=art.slug) }}" style="text-decoration:none;color:inherit;">
+    <div class="card" style="cursor:pointer;transition:box-shadow 0.2s;" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow=''">
+      <div class="card-body">
+        <div class="d-flex align-center gap-8 mb-16">
+          <span class="badge badge-info">{{ (art.category or 'general')|replace('_',' ')|title }}</span>
+        </div>
+        <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">{{ art.title }}</h3>
+        {% if art.symptoms %}
+        <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.5;">
+          {{ art.symptoms[:100] }}{% if art.symptoms|length > 100 %}…{% endif %}
+        </p>
+        {% endif %}
+        <div style="margin-top:12px;font-size:0.78rem;color:var(--text-muted);">
+          Updated {{ art.updated_at.strftime('%b %d, %Y') if art.updated_at else '—' }}
+        </div>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body" style="text-align:center;padding:60px;">
+    <i data-lucide="search" style="width:40px;height:40px;color:var(--text-muted);margin-bottom:16px;"></i>
+    <p class="text-muted">No articles found{% if query %} for "{{ query }}"{% endif %}.</p>
+    {% if query %}
+    <p style="margin-top:8px;font-size:0.875rem;">
+      <a href="{{ url_for('kb.index') }}">View all articles</a> or
+      <a href="{{ url_for('employee.chat') }}">start a support chat</a>.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

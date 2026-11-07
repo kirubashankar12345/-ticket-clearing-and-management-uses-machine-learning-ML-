@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ResolveAI{% endblock %} — ResolveAI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<!-- Inject CSRF token for AJAX -->
+<script>window.CSRF_TOKEN = "{{ csrf_token() }}";</script>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <a href="{{ url_for('main.landing') }}" class="sidebar-brand">
+      <div class="brand-icon">
+        <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+      </div>
+      ResolveAI
+    </a>
+
+    <nav class="sidebar-nav">
+      {% block sidebar %}{% endblock %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('auth.logout') }}" class="nav-item">
+        <i data-lucide="log-out"></i>
+        Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="d-flex align-center gap-8">
+        <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+          <i data-lucide="menu" style="width:22px;height:22px;"></i>
+        </button>
+        <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+      </div>
+
+      <div class="topbar-actions">
+        {% if current_user.is_authenticated %}
+        <div class="notif-wrap">
+          <button class="notification-btn" id="notif-btn" aria-label="Notifications">
+            <i data-lucide="bell" style="width:20px;height:20px;"></i>
+            <span class="notification-badge" id="notif-badge"
+              style="{{ 'display:flex;' if unread_notifications > 0 else 'display:none;' }}">
+              {{ unread_notifications if unread_notifications < 100 else '99+' }}
+            </span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <button onclick="markAllNotifRead()" style="background:none;border:none;cursor:pointer;font-size:0.78rem;color:var(--accent);">Mark all read</button>
+            </div>
+            <div id="notif-list">
+              <div class="notif-item text-muted" style="text-align:center;padding:20px;">Loading...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="user-info">
+          <div class="user-avatar">{{ current_user.name[0].upper() if current_user.name else '?' }}</div>
+          <span>{{ current_user.name }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Flash messages -->
+    <div style="padding: 0 28px; margin-top: 16px;">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
+            <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' }}" style="width:16px;height:16px;flex-shrink:0;"></i>
+            <span>{{ message }}</span>
+            <button class="alert-close" aria-label="Dismiss">&times;</button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+
+    <!-- Page content -->
+    <div class="page-body">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<!-- Shared confirmation modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="confirm-modal-title">Confirm Action</span>
+      <button class="modal-close" id="confirm-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-modal-message">Are you sure?</p>
+    </div>
+    <div class="modal-footer">
+      <form method="POST" id="confirm-modal-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="button" class="btn btn-secondary" id="confirm-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="confirm-modal-btn">Confirm</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

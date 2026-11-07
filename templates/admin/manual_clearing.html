@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Manual Ticket Clearing{% endblock %}
+{% block page_title %}Manual Ticket Clearing{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.manual_clearing') }}" class="nav-item active">
+    <i data-lucide="headphones"></i> Manual Ticket Clearing
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.engineers') }}" class="nav-item">
+    <i data-lucide="users"></i> Support Engineers
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Manual Ticket Clearing</h1>
+  <p>Assign open tickets to engineers and manage their progress through the existing ticket workflow.</p>
+</div>
+
+<div class="stats-grid mb-24">
+  <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value">{{ queue.pending }}</div></div>
+  <div class="stat-card"><div class="stat-label">In Progress</div><div class="stat-value">{{ queue.in_progress }}</div></div>
+  <div class="stat-card"><div class="stat-label">Waiting for Employee</div><div class="stat-value">{{ queue.waiting_for_employee }}</div></div>
+  <div class="stat-card"><div class="stat-label">Escalated</div><div class="stat-value">{{ queue.escalated }}</div></div>
+  <div class="stat-card"><div class="stat-label">Resolved manually</div><div class="stat-value">{{ queue.resolved }}</div></div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Human support queue</span>
+    <span class="text-muted">{{ pagination.total }} open ticket(s)</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Employee</th><th>Issue</th><th>Priority</th><th>Status</th><th>Assigned engineer</th><th>Created</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for ticket in pagination.items %}
+        <tr>
+          <td><a href="{{ url_for('admin.ticket_detail', ticket_id=ticket.ticket_id) }}" class="fw-600 text-accent">{{ ticket.ticket_id }}</a></td>
+          <td>{{ ticket.employee_name }}</td>
+          <td style="max-width:260px;"><span title="{{ ticket.issue_description }}">{{ ticket.issue_description[:75] }}{% if ticket.issue_description|length > 75 %}…{% endif %}</span></td>
+          <td><span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
+          <td><span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span></td>
+          <td>{{ ticket.assigned_engineer.name if ticket.assigned_engineer else 'Unassigned' }}</td>
+          <td>{{ ticket.created_at.strftime('%b %d, %Y') if ticket.created_at else '—' }}</td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex;gap:6px;">
+              <a href="{{ url_for('admin.ticket_detail', ticket_id=ticket.ticket_id) }}#resolve-form" class="btn btn-sm" style="background:#10b981;border-color:#10b981;color:#fff;padding:5px 10px;font-size:11px;font-weight:700;border-radius:6px;display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="check" style="width:13px;height:13px;"></i> Resolve &amp; Explain
+              </a>
+              <a href="{{ url_for('admin.ticket_detail', ticket_id=ticket.ticket_id) }}" class="btn btn-secondary btn-sm" style="padding:5px 10px;font-size:11px;">
+                Manage
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px;">No unresolved manual tickets are waiting.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+    <a class="page-link" href="{{ url_for('admin.manual_clearing', page=pagination.prev_num) }}">Previous</a>
+    {% endif %}
+    <span class="page-link active">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a class="page-link" href="{{ url_for('admin.manual_clearing', page=pagination.next_num) }}">Next</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

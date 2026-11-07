@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.ticket_id }}{% endblock %}
+{% block page_title %}Ticket {{ ticket.ticket_id }}{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('engineer.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> My Dashboard
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-center gap-8 mb-16" style="flex-wrap:wrap;">
+  <a href="{{ url_for('engineer.dashboard') }}" class="btn btn-secondary btn-sm">
+    <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back
+  </a>
+  <span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span>
+  <span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span>
+  {% if ticket.employee_confirmed %}
+    <span class="badge badge-success">Employee Confirmed</span>
+  {% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+
+  <!-- Main column -->
+  <div>
+    <div class="card mb-16">
+      <div class="card-header">
+        <span class="card-title">{{ ticket.ticket_id }} — {{ ticket.employee_name }}</span>
+        <span class="text-muted" style="font-size:0.8rem;">{{ ticket.employee_email }}</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:0.95rem;line-height:1.7;margin-bottom:12px;">{{ ticket.issue_description }}</p>
+        {% if ticket.ai_recommendation %}
+        <div style="background:var(--accent-light);border:1px solid #c7d2fe;border-radius:var(--radius);padding:12px;">
+          <strong style="font-size:0.82rem;color:var(--accent-dark);">AI Recommendation:</strong>
+          <p style="font-size:0.875rem;margin-top:6px;color:var(--text-secondary);white-space:pre-wrap;">{{ ticket.ai_recommendation }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Engineer actions -->
+    <div class="card mb-16">
+      <div class="card-header"><span class="card-title">Engineer Actions</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Respond to employee -->
+        <div>
+          <label class="form-label">Respond to Employee</label>
+          <form method="POST" action="{{ url_for('engineer.respond_to_ticket', ticket_id=ticket.ticket_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <textarea name="response" class="form-control" rows="3"
+              placeholder="Write a response visible to the employee..."></textarea>
+            <div style="margin-top:8px;">
+              <button type="submit" class="btn btn-primary btn-sm">Send Response</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Add internal note -->
+        <div>
+          <label class="form-label">Internal Note</label>
+          <form method="POST" action="{{ url_for('engineer.add_note', ticket_id=ticket.ticket_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <textarea name="note" class="form-control" rows="2"
+              placeholder="Internal note (not visible to employee)..."></textarea>
+            <div style="margin-top:8px;">
+              <button type="submit" class="btn btn-secondary btn-sm">Add Note</button>
+            </div>
+          </form>
+        </div>
+
+        {% if ticket.status != 'Resolved' and ticket.routing_method == 'manual' %}
+        <form method="POST" action="{{ url_for('engineer.resolve_ticket', ticket_id=ticket.ticket_id) }}"
+          onsubmit="return confirm('Mark this ticket resolved?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="note" value="Resolved by assigned engineer">
+          <button type="submit" class="btn btn-success btn-sm">
+            <i data-lucide="check-circle" style="width:14px;height:14px;"></i>
+            Resolve Ticket
+          </button>
+        </form>
+        {% endif %}
+
+        <!-- Escalate -->
+        <div>
+          <form method="POST" action="{{ url_for('engineer.escalate_ticket', ticket_id=ticket.ticket_id) }}"
+            onsubmit="return confirm('Escalate this ticket?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="note" value="Escalated by engineer">
+            <button type="submit" class="btn btn-warning btn-sm">
+              <i data-lucide="alert-triangle" style="width:14px;height:14px;"></i>
+              Escalate Ticket
+            </button>
+          </form>
+        </div>
+
+        <!-- Resolution guidance -->
+        <div class="alert alert-info">
+          <i data-lucide="info" style="width:16px;height:16px;"></i>
+          <span>Manual tickets can be resolved by the assigned engineer. AI tickets resolve automatically after troubleshooting; employees can report a problem to send them to human support.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity history (all including internal) -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Activity History</span></div>
+      <div class="card-body">
+        <div class="activity-timeline">
+          {% for act in activities %}
+          <div class="activity-item">
+            <div class="activity-dot
+              {% if act.new_status == 'Escalated' %}escalated
+              {% elif act.new_status == 'Resolved' %}resolved
+              {% elif act.old_status != act.new_status %}status-change
+              {% else %}comment{% endif %}">
+            </div>
+            <div class="activity-content">
+              <div class="activity-text">
+                {% if act.is_internal %}
+                  <span class="badge badge-warning" style="font-size:0.68rem;">Internal</span>
+                {% endif %}
+                {% if act.old_status != act.new_status and act.old_status %}
+                  <strong>{{ act.old_status }}</strong> → <strong>{{ act.new_status }}</strong>
+                  {% if act.note %} — {{ act.note }}{% endif %}
+                {% elif act.note %}
+                  {{ act.note }}
+                {% else %}
+                  Ticket {{ act.new_status or 'updated' }}
+                {% endif %}
+              </div>
+              <div class="activity-time">
+                By {{ act.changed_by }} · {{ act.timestamp.strftime('%b %d, %Y %H:%M') if act.timestamp else '—' }}
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <p class="text-muted" style="text-align:center;padding:20px;">No activity yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar info -->
+  <div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Ticket Info</span></div>
+      <div class="card-body" style="font-size:0.875rem;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">TICKET ID</div><strong>{{ ticket.ticket_id }}</strong></div>
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">STATUS</div><span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span></div>
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">PRIORITY</div><span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></div>
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CATEGORY</div>{{ (ticket.category or 'general')|replace('_',' ')|title }}</div>
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">EMPLOYEE</div>{{ ticket.employee_name }}<br><span class="text-muted" style="font-size:0.8rem;">{{ ticket.employee_email }}</span></div>
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CONFIRMED</div>{{ '✅ Yes' if ticket.employee_confirmed else '❌ No' }}</div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">SLA</div>
+            <span data-sla="{{ ticket.created_at.isoformat() if ticket.created_at else '' }}"
+                  data-status="{{ ticket.status }}"
+                  data-sla-hours="24">—</span>
+          </div>
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">CREATED</div>{{ ticket.created_at.strftime('%b %d, %Y %H:%M') if ticket.created_at else '—' }}</div>
+          {% if ticket.resolved_at %}
+          <div><div class="text-muted" style="font-size:0.75rem;margin-bottom:3px;">RESOLVED</div>{{ ticket.resolved_at.strftime('%b %d, %Y') }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}

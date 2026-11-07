@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}System Settings{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.engineers') }}" class="nav-item">
+    <i data-lucide="users"></i> Support Engineers
+  </a>
+  <a href="{{ url_for('admin.knowledge_base') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('admin.reports') }}" class="nav-item">
+    <i data-lucide="bar-chart-2"></i> Reports
+  </a>
+  <a href="{{ url_for('admin.settings') }}" class="nav-item active">
+    <i data-lucide="settings"></i> Settings
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>System Settings</h1>
+  <p>Configure ResolveAI application settings.</p>
+</div>
+
+<div style="max-width:600px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">General Settings</span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.settings') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label class="form-label">Site Name</label>
+          <input type="text" name="site_name" class="form-control"
+            value="{{ settings.get('site_name', 'ResolveAI') }}"
+            placeholder="ResolveAI">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Support Email</label>
+          <input type="email" name="support_email" class="form-control"
+            value="{{ settings.get('support_email', '') }}"
+            placeholder="support@resolveai.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Default SLA Hours</label>
+          <input type="number" name="default_sla_hours" class="form-control"
+            value="{{ settings.get('default_sla_hours', '24') }}"
+            min="1" max="720">
+          <div class="form-text">Number of hours before a ticket is considered overdue.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Notifications</label>
+          <select name="email_notifications_enabled" class="form-select">
+            <option value="false" {{ 'selected' if settings.get('email_notifications_enabled', 'false') == 'false' else '' }}>Disabled</option>
+            <option value="true" {{ 'selected' if settings.get('email_notifications_enabled') == 'true' else '' }}>Enabled</option>
+          </select>
+          <div class="form-text">Enable to send email alerts on ticket updates.</div>
+        </div>
+
+        <div class="d-flex gap-8 mt-16">
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save" style="width:15px;height:15px;"></i>
+            Save Settings
+          </button>
+          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Employee Dashboard{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('employee.raise_ticket') }}" class="nav-item {% if request.endpoint == 'employee.raise_ticket' %}active{% endif %}" style="font-weight:700;color:#10b981;">
+    <i data-lucide="plus-circle"></i> Raise Ticket
+  </a>
+  <a href="{{ url_for('employee.dashboard') }}" class="nav-item {% if request.endpoint == 'employee.dashboard' %}active{% endif %}">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('employee.chat') }}" class="nav-item {% if request.endpoint == 'employee.chat' %}active{% endif %}">
+    <i data-lucide="message-circle"></i> AI Support Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="nav-item {% if request.endpoint in ['employee.tickets','employee.ticket_detail'] %}active{% endif %}">
+    <i data-lucide="ticket"></i> My Tickets
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('employee.profile') }}" class="nav-item {% if request.endpoint == 'employee.profile' %}active{% endif %}">
+    <i data-lucide="user"></i> Profile
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Welcome back, {{ current_user.name.split()[0] }} 👋</h1>
+  <p>Here's a summary of your support tickets.</p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--accent-light);color:var(--accent);">
+      <i data-lucide="ticket" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Total Tickets</div>
+    <div class="stat-value">{{ stats.total }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#eef2ff;color:var(--accent);">
+      <i data-lucide="circle" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Open</div>
+    <div class="stat-value">{{ stats.open }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fffbeb;color:var(--warning);">
+      <i data-lucide="loader" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value">{{ stats.in_progress }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#f0fdf4;color:var(--success);">
+      <i data-lucide="check-circle" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Resolved</div>
+    <div class="stat-value">{{ stats.resolved }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fef2f2;color:var(--danger);">
+      <i data-lucide="alert-triangle" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Escalated</div>
+    <div class="stat-value">{{ stats.escalated }}</div>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="d-flex gap-8 mb-24">
+  <a href="{{ url_for('employee.chat') }}" class="btn btn-primary">
+    <i data-lucide="message-circle" style="width:16px;height:16px;"></i>
+    Start AI Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="btn btn-secondary">
+    <i data-lucide="list" style="width:16px;height:16px;"></i>
+    View All Tickets
+  </a>
+</div>
+
+<!-- Recent tickets -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Recent Tickets</span>
+    <a href="{{ url_for('employee.tickets') }}" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Issue</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in recent.items %}
+        <tr>
+          <td>
+            <a href="{{ url_for('employee.ticket_detail', ticket_id=ticket.ticket_id) }}" class="fw-600">
+              {{ ticket.ticket_id }}
+            </a>
+          </td>
+          <td style="max-width:280px;">
+            <span title="{{ ticket.issue_description }}">
+              {{ ticket.issue_description[:70] }}{% if ticket.issue_description|length > 70 %}…{% endif %}
+            </span>
+          </td>
+          <td>{{ (ticket.category or 'general')|replace('_',' ')|title }}</td>
+          <td>
+            <span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span>
+          </td>
+          <td>
+            <span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span>
+          </td>
+          <td class="text-muted" style="white-space:nowrap;">
+            {{ ticket.created_at.strftime('%b %d, %Y') if ticket.created_at else '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">
+            No tickets yet. <a href="{{ url_for('employee.chat') }}">Start a support chat</a> to create your first ticket.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

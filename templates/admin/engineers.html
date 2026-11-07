@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Support Engineers{% endblock %}
+{% block page_title %}Support Engineers{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.engineers') }}" class="nav-item active">
+    <i data-lucide="users"></i> Support Engineers
+  </a>
+  <a href="{{ url_for('admin.knowledge_base') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('admin.reports') }}" class="nav-item">
+    <i data-lucide="bar-chart-2"></i> Reports
+  </a>
+  <a href="{{ url_for('admin.settings') }}" class="nav-item">
+    <i data-lucide="settings"></i> Settings
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Support Engineers &amp; Staff</h1>
+  <p>{{ engineer_stats|length }} support engineers &amp; administrators in the system available to handle tickets.</p>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Engineer</th>
+          <th>Email</th>
+          <th>Department</th>
+          <th>Active Tickets</th>
+          <th>Member Since</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in engineer_stats %}
+        <tr>
+          <td>
+            <div class="d-flex align-center gap-8">
+              <div class="user-avatar" style="width:34px;height:34px;font-size:0.85rem;background:{% if row.engineer.role == 'admin' %}linear-gradient(135deg,#6366f1,#8b5cf6){% else %}#10b981{% endif %};color:#fff;border-radius:8px;">
+                {{ row.engineer.name[0].upper() }}
+              </div>
+              <div>
+                <strong style="color:#0f172a;font-size:0.95rem;">{{ row.engineer.name }}</strong>
+                {% if row.engineer.role == 'admin' %}
+                  <span class="badge" style="background:#e0e7ff;color:#3730a3;font-size:10px;font-weight:800;margin-left:6px;border:1px solid #c7d2fe;">Administrator</span>
+                {% else %}
+                  <span class="badge" style="background:#ecfdf5;color:#047857;font-size:10px;font-weight:700;margin-left:6px;border:1px solid #a7f3d0;">Support Engineer</span>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td class="text-muted">{{ row.engineer.email }}</td>
+          <td>{{ row.engineer.department or '—' }}</td>
+          <td>
+            <span class="badge {{ 'badge-danger' if row.active_tickets > 5 else 'badge-normal' }}">
+              {{ row.active_tickets }}
+            </span>
+          </td>
+          <td class="text-muted">
+            {{ row.engineer.created_at.strftime('%b %d, %Y') if row.engineer.created_at else '—' }}
+          </td>
+          <td>
+            <span class="badge {{ 'badge-success' if row.engineer.is_active else 'badge-danger' }}">
+              {{ 'Active' if row.engineer.is_active else 'Inactive' }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">
+            No engineers found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

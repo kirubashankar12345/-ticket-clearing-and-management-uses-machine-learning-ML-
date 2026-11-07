@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Base{% endblock %}
+{% block page_title %}Knowledge Base{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.engineers') }}" class="nav-item">
+    <i data-lucide="users"></i> Support Engineers
+  </a>
+  <a href="{{ url_for('admin.knowledge_base') }}" class="nav-item active">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('admin.reports') }}" class="nav-item">
+    <i data-lucide="bar-chart-2"></i> Reports
+  </a>
+  <a href="{{ url_for('admin.settings') }}" class="nav-item">
+    <i data-lucide="settings"></i> Settings
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-between align-center">
+  <div>
+    <h1>Knowledge Base</h1>
+    <p>Manage troubleshooting articles.</p>
+  </div>
+  <a href="{{ url_for('admin.knowledge_base_new') }}" class="btn btn-primary">
+    <i data-lucide="plus" style="width:15px;height:15px;"></i>
+    New Article
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for article in pagination.items %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin.knowledge_base_article', article_id=article.id) }}" class="fw-600">
+              {{ article.title }}
+            </a>
+          </td>
+          <td>{{ (article.category or 'general')|replace('_',' ')|title }}</td>
+          <td>
+            <span class="badge
+              {% if article.status == 'published' %}badge-success
+              {% elif article.status == 'archived' %}badge-closed
+              {% else %}badge-warning{% endif %}">
+              {{ article.status|title }}
+            </span>
+          </td>
+          <td class="text-muted">
+            {{ article.updated_at.strftime('%b %d, %Y') if article.updated_at else '—' }}
+          </td>
+          <td>
+            <div class="d-flex gap-8">
+              <a href="{{ url_for('admin.knowledge_base_article', article_id=article.id) }}"
+                 class="btn btn-secondary btn-sm">Edit</a>
+              <a href="{{ url_for('kb.article', slug=article.slug) }}"
+                 class="btn btn-secondary btn-sm" target="_blank">View</a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px;">
+            No articles yet. <a href="{{ url_for('admin.knowledge_base_new') }}">Create the first one</a>.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('admin.knowledge_base', page=pagination.prev_num) }}" class="page-link">
+        <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+      </a>
+    {% endif %}
+    {% for p in pagination.iter_pages() %}
+      {% if p %}
+        <a href="{{ url_for('admin.knowledge_base', page=p) }}"
+           class="page-link {{ 'active' if p == pagination.page else '' }}">{{ p }}</a>
+      {% else %}
+        <span class="page-link disabled">…</span>
+      {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+      <a href="{{ url_for('admin.knowledge_base', page=pagination.next_num) }}" class="page-link">
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

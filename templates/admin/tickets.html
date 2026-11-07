@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}All Tickets{% endblock %}
+{% block page_title %}All Tickets{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item active">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.tickets', status='Open') }}" class="nav-item">
+    <i data-lucide="circle"></i> Open Tickets
+  </a>
+  <a href="{{ url_for('admin.tickets', status='Escalated') }}" class="nav-item">
+    <i data-lucide="alert-triangle"></i> Escalated
+  </a>
+  <a href="{{ url_for('admin.tickets', status='Resolved') }}" class="nav-item">
+    <i data-lucide="check-circle"></i> Resolved
+  </a>
+  <a href="{{ url_for('admin.engineers') }}" class="nav-item">
+    <i data-lucide="users"></i> Support Engineers
+  </a>
+  <a href="{{ url_for('admin.knowledge_base') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('admin.reports') }}" class="nav-item">
+    <i data-lucide="bar-chart-2"></i> Reports
+  </a>
+  <a href="{{ url_for('admin.settings') }}" class="nav-item">
+    <i data-lucide="settings"></i> Settings
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>All Tickets</h1>
+  <p>{{ pagination.total }} total tickets</p>
+</div>
+
+<div class="card">
+  <form method="GET" action="{{ url_for('admin.tickets') }}">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <i data-lucide="search" style="width:15px;height:15px;color:var(--text-muted);"></i>
+        <input type="text" class="search-input" name="search" value="{{ filters.search }}" placeholder="Search tickets, employees...">
+      </div>
+      <div class="filter-group">
+        <label>Status:</label>
+        <select name="status" class="filter-select filter-auto-submit">
+          <option value="all" {% if filters.status == 'all' %}selected{% endif %}>All</option>
+          <option value="Open" {% if filters.status == 'Open' %}selected{% endif %}>Open</option>
+          <option value="In Progress" {% if filters.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Waiting for Employee" {% if filters.status == 'Waiting for Employee' %}selected{% endif %}>Waiting</option>
+          <option value="Escalated" {% if filters.status == 'Escalated' %}selected{% endif %}>Escalated</option>
+          <option value="Resolved" {% if filters.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+          <option value="Closed" {% if filters.status == 'Closed' %}selected{% endif %}>Closed</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Priority:</label>
+        <select name="priority" class="filter-select filter-auto-submit">
+          <option value="all" {% if filters.priority == 'all' %}selected{% endif %}>All</option>
+          <option value="Urgent" {% if filters.priority == 'Urgent' %}selected{% endif %}>Urgent</option>
+          <option value="High" {% if filters.priority == 'High' %}selected{% endif %}>High</option>
+          <option value="Normal" {% if filters.priority == 'Normal' %}selected{% endif %}>Normal</option>
+          <option value="Low" {% if filters.priority == 'Low' %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Category:</label>
+        <select name="category" class="filter-select filter-auto-submit">
+          <option value="all" {% if filters.category == 'all' %}selected{% endif %}>All</option>
+          {% for category in ['login','password','crashes','api_errors','database','installation','permissions','web_bugs','general'] %}
+          <option value="{{ category }}" {% if filters.category == category %}selected{% endif %}>{{ category|replace('_',' ')|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Routing:</label>
+        <select name="routing_method" class="filter-select filter-auto-submit">
+          <option value="all" {% if filters.routing_method == 'all' %}selected{% endif %}>All</option>
+          <option value="ai" {% if filters.routing_method == 'ai' %}selected{% endif %}>AI</option>
+          <option value="manual" {% if filters.routing_method == 'manual' %}selected{% endif %}>Manual</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Engineer:</label>
+        <select name="engineer_id" class="filter-select filter-auto-submit">
+          <option value="" {% if not filters.engineer_id %}selected{% endif %}>All</option>
+          {% for eng in engineers %}
+          <option value="{{ eng.id }}" {% if filters.engineer_id == eng.id|string %}selected{% endif %}>{{ eng.name }} ({{ 'Admin Staff' if eng.role == 'admin' else 'Support Engineer' }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="date-from">From:</label>
+        <input id="date-from" type="date" name="date_from" value="{{ filters.date_from }}" class="filter-select">
+      </div>
+      <div class="filter-group">
+        <label for="date-to">To:</label>
+        <input id="date-to" type="date" name="date_to" value="{{ filters.date_to }}" class="filter-select">
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm">
+        <i data-lucide="filter" style="width:14px;height:14px;"></i> Filter
+      </button>
+    </div>
+  </form>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Employee</th>
+          <th>Issue</th>
+          <th>Category</th>
+          <th>Routing</th>
+          <th>Resolution Method</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Assigned To</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in pagination.items %}
+        <tr>
+          <td>
+            <a href="{{ url_for('admin.ticket_detail', ticket_id=ticket.ticket_id) }}" class="fw-600 text-accent">
+              {{ ticket.ticket_id }}
+            </a>
+          </td>
+          <td>{{ ticket.employee_name }}</td>
+          <td style="max-width:200px;">
+            <span title="{{ ticket.issue_description }}">
+              {{ ticket.issue_description[:55] }}{% if ticket.issue_description|length > 55 %}…{% endif %}
+            </span>
+          </td>
+          <td>{{ (ticket.category or 'general')|replace('_',' ')|title }}</td>
+          <td>
+            {% if ticket.routing_method == 'ai' %}
+              <span class="badge" style="background:#f5f3ff;color:#4f46e5;font-weight:700;">AI Queue</span>
+            {% else %}
+              <span class="badge" style="background:#f1f5f9;color:#334155;font-weight:700;">Manual Support</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if ticket.resolution_method == 'AI' %}
+              <span class="badge" style="background:#f3e8ff;color:#6b21a8;border:1.5px solid #d8b4fe;font-weight:800;display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="bot" style="width:13px;height:13px;"></i> AI Cleared
+              </span>
+              <div style="font-size:10.5px;color:#7e22ce;margin-top:2px;">ResolveAI Engine</div>
+            {% elif ticket.resolution_method == 'Manual' %}
+              <span class="badge" style="background:#ecfdf5;color:#047857;border:1.5px solid #a7f3d0;font-weight:800;display:inline-flex;align-items:center;gap:4px;">
+                <i data-lucide="user-check" style="width:13px;height:13px;"></i> Manual Cleared
+              </span>
+              <div style="font-size:10.5px;color:#065f46;font-weight:700;margin-top:2px;">
+                {{ ticket.resolved_by_name or 'Admin' }} (ID: #{{ ticket.resolved_by_id or 1 }})
+              </div>
+            {% else %}
+              <span class="badge badge-open" style="font-size:10.5px;">Pending</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
+          <td>
+            {% if ticket.status == 'Closed' %}
+              <span class="badge badge-closed">Closed</span>
+              <div style="font-size:10.5px;color:#0f172a;font-weight:700;margin-top:3px;background:#f8fafc;padding:3px 6px;border-radius:4px;border:1px solid #cbd5e1;line-height:1.3;">
+                By: <strong>{{ ticket.closed_by_name or 'Admin User' }}</strong><br>
+                <span style="color:#2563eb;font-weight:800;">Admin ID: #{{ ticket.closed_by_id or 1 }}</span>
+              </div>
+            {% elif ticket.status == 'Resolved' %}
+              <span class="badge badge-resolved">Resolved</span>
+              <div style="font-size:10px;color:#059669;margin-top:2px;">
+                Cleared by {{ 'AI' if ticket.resolution_method == 'AI' else (ticket.resolved_by_name or 'Admin') }}
+              </div>
+            {% else %}
+              <span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if ticket.assigned_engineer %}
+              {{ ticket.assigned_engineer.name }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted" style="white-space:nowrap;">
+            {{ ticket.created_at.strftime('%b %d') if ticket.created_at else '—' }}
+          </td>
+          <td>
+            <a href="{{ url_for('admin.ticket_detail', ticket_id=ticket.ticket_id) }}" class="btn btn-secondary btn-sm">Manage</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="11" style="text-align:center;color:var(--text-muted);padding:40px;">
+            No tickets found. <a href="{{ url_for('admin.tickets') }}">Clear filters</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('admin.tickets', page=pagination.prev_num, **filters) }}" class="page-link">
+        <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+      </a>
+    {% endif %}
+    {% for p in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+      {% if p %}
+        <a href="{{ url_for('admin.tickets', page=p, **filters) }}"
+           class="page-link {{ 'active' if p == pagination.page else '' }}">{{ p }}</a>
+      {% else %}
+        <span class="page-link disabled">…</span>
+      {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+      <a href="{{ url_for('admin.tickets', page=pagination.next_num, **filters) }}" class="page-link">
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Engineer Dashboard{% endblock %}
+{% block page_title %}Engineer Dashboard{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('engineer.dashboard') }}" class="nav-item {% if request.endpoint == 'engineer.dashboard' %}active{% endif %}">
+    <i data-lucide="layout-dashboard"></i> My Dashboard
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Welcome, {{ current_user.name.split()[0] }} 👷</h1>
+  <p>Your assigned tickets and incoming queue.</p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--accent-light);color:var(--accent);">
+      <i data-lucide="ticket" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Assigned</div>
+    <div class="stat-value">{{ stats.assigned }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#eef2ff;color:var(--accent);">
+      <i data-lucide="circle" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Open</div>
+    <div class="stat-value">{{ stats.open }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fffbeb;color:var(--warning);">
+      <i data-lucide="loader" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value">{{ stats.in_progress }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fef2f2;color:var(--danger);">
+      <i data-lucide="alert-triangle" style="width:20px;height:20px;"></i>
+    </div>
+    <div class="stat-label">Escalated</div>
+    <div class="stat-value">{{ stats.escalated }}</div>
+  </div>
+</div>
+
+<!-- Assigned Tickets -->
+<div class="card mb-24">
+  <div class="card-header">
+    <span class="card-title">My Assigned Tickets</span>
+    <span class="badge badge-normal">{{ assigned|length }}</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Employee</th>
+          <th>Issue</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>SLA</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in assigned %}
+        <tr>
+          <td>
+            <a href="{{ url_for('engineer.ticket_detail', ticket_id=ticket.ticket_id) }}" class="fw-600 text-accent">
+              {{ ticket.ticket_id }}
+            </a>
+          </td>
+          <td>{{ ticket.employee_name }}</td>
+          <td style="max-width:220px;">
+            <span title="{{ ticket.issue_description }}">
+              {{ ticket.issue_description[:55] }}{% if ticket.issue_description|length > 55 %}…{% endif %}
+            </span>
+          </td>
+          <td><span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
+          <td><span class="badge badge-{{ ticket.status|lower|replace(' ','-') }}">{{ ticket.status }}</span></td>
+          <td>
+            <span data-sla="{{ ticket.created_at.isoformat() if ticket.created_at else '' }}"
+                  data-status="{{ ticket.status }}"
+                  data-sla-hours="24"
+                  class="text-muted">—</span>
+          </td>
+          <td class="text-muted" style="white-space:nowrap;">
+            {{ ticket.created_at.strftime('%b %d') if ticket.created_at else '—' }}
+          </td>
+          <td>
+            <a href="{{ url_for('engineer.ticket_detail', ticket_id=ticket.ticket_id) }}"
+               class="btn btn-secondary btn-sm">View</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">
+            No tickets assigned to you yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Unassigned Queue -->
+{% if queue %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Unassigned Queue</span>
+    <span class="badge badge-warning">{{ queue|length }}</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Employee</th>
+          <th>Issue</th>
+          <th>Priority</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in queue %}
+        <tr>
+          <td>
+            <a href="{{ url_for('engineer.ticket_detail', ticket_id=ticket.ticket_id) }}" class="fw-600 text-accent">
+              {{ ticket.ticket_id }}
+            </a>
+          </td>
+          <td>{{ ticket.employee_name }}</td>
+          <td style="max-width:240px;">
+            <span title="{{ ticket.issue_description }}">
+              {{ ticket.issue_description[:60] }}{% if ticket.issue_description|length > 60 %}…{% endif %}
+            </span>
+          </td>
+          <td><span class="badge badge-{{ ticket.priority|lower }}">{{ ticket.priority }}</span></td>
+          <td class="text-muted" style="white-space:nowrap;">
+            {{ ticket.created_at.strftime('%b %d') if ticket.created_at else '—' }}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('engineer.claim_ticket', ticket_id=ticket.ticket_id) }}"
+              style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-primary btn-sm">Claim</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tickets.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+{% block title %}Raise a Support Ticket<script>
+function updateRoutingBanner(val) {
+  const banner = document.getElementById('routing-banner');
+  const icon = document.getElementById('routing-icon');
+  const title = document.getElementById('routing-title');
+  const desc = document.getElementById('routing-desc');
+  if (val === 'High' || val === 'Urgent') {
+    banner.style.background = '#fff1f2';
+    banner.style.borderColor = '#fecdd3';
+    icon.style.background = '#f43f5e';
+    icon.innerHTML = '<i data-lucide="user-check" style="width:20px;height:20px;"></i>';
+    title.style.color = '#be123c';
+    title.innerText = 'MANUAL TICKET · HUMAN CLEARANCE ONLY';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> High and Urgent issues are routed directly to the <strong>Manual Support Queue</strong> for investigation and clearance by an IT Administrator or Engineer.';
+  } else {
+    banner.style.background = '#faf5ff';
+    banner.style.borderColor = '#d8b4fe';
+    icon.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+    icon.innerHTML = '<i data-lucide="bot" style="width:20px;height:20px;"></i>';
+    title.style.color = '#6b21a8';
+    title.innerText = 'SIMPLE TICKET · AI AUTOMATED CLEARING';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> Simple ticket automatically diagnosed and <strong>cleared by ResolveAI</strong> with an instant step-by-step solution.';
+  }
+  if (window.lucide) lucide.createIcons();
+}
+</script>
+{% endblock %}
+{% block page_title %}Raise a Support Ticket<script>
+function updateRoutingBanner(val) {
+  const banner = document.getElementById('routing-banner');
+  const icon = document.getElementById('routing-icon');
+  const title = document.getElementById('routing-title');
+  const desc = document.getElementById('routing-desc');
+  if (val === 'High' || val === 'Urgent') {
+    banner.style.background = '#fff1f2';
+    banner.style.borderColor = '#fecdd3';
+    icon.style.background = '#f43f5e';
+    icon.innerHTML = '<i data-lucide="user-check" style="width:20px;height:20px;"></i>';
+    title.style.color = '#be123c';
+    title.innerText = 'MANUAL TICKET · HUMAN CLEARANCE ONLY';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> High and Urgent issues are routed directly to the <strong>Manual Support Queue</strong> for investigation and clearance by an IT Administrator or Engineer.';
+  } else {
+    banner.style.background = '#faf5ff';
+    banner.style.borderColor = '#d8b4fe';
+    icon.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+    icon.innerHTML = '<i data-lucide="bot" style="width:20px;height:20px;"></i>';
+    title.style.color = '#6b21a8';
+    title.innerText = 'SIMPLE TICKET · AI AUTOMATED CLEARING';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> Simple ticket automatically diagnosed and <strong>cleared by ResolveAI</strong> with an instant step-by-step solution.';
+  }
+  if (window.lucide) lucide.createIcons();
+}
+</script>
+{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('employee.raise_ticket') }}" class="nav-item active">
+    <i data-lucide="plus-circle"></i> Raise Ticket
+  </a>
+  <a href="{{ url_for('employee.chat') }}" class="nav-item">
+    <i data-lucide="message-circle"></i> AI Support Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> My Tickets
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('employee.profile') }}" class="nav-item">
+    <i data-lucide="user"></i> Profile
+  </a>
+<script>
+function updateRoutingBanner(val) {
+  const banner = document.getElementById('routing-banner');
+  const icon = document.getElementById('routing-icon');
+  const title = document.getElementById('routing-title');
+  const desc = document.getElementById('routing-desc');
+  if (val === 'High' || val === 'Urgent') {
+    banner.style.background = '#fff1f2';
+    banner.style.borderColor = '#fecdd3';
+    icon.style.background = '#f43f5e';
+    icon.innerHTML = '<i data-lucide="user-check" style="width:20px;height:20px;"></i>';
+    title.style.color = '#be123c';
+    title.innerText = 'MANUAL TICKET · HUMAN CLEARANCE ONLY';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> High and Urgent issues are routed directly to the <strong>Manual Support Queue</strong> for investigation and clearance by an IT Administrator or Engineer.';
+  } else {
+    banner.style.background = '#faf5ff';
+    banner.style.borderColor = '#d8b4fe';
+    icon.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+    icon.innerHTML = '<i data-lucide="bot" style="width:20px;height:20px;"></i>';
+    title.style.color = '#6b21a8';
+    title.innerText = 'SIMPLE TICKET · AI AUTOMATED CLEARING';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> Simple ticket automatically diagnosed and <strong>cleared by ResolveAI</strong> with an instant step-by-step solution.';
+  }
+  if (window.lucide) lucide.createIcons();
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+    <span style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:4px 12px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;">
+      TICKET RAISE PORTAL
+    </span>
+  </div>
+  <h1>Raise a Support Ticket</h1>
+  <p>Describe what went wrong with your software. ResolveAI will diagnose the issue, provide guided troubleshooting, and route your ticket to support.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:24px;align-items:start;margin-bottom:28px;">
+  <!-- Main Form Card -->
+  <section class="card" style="border:2px solid #a7f3d0;border-radius:14px;box-shadow:0 6px 20px rgba(16,185,129,0.06);">
+    <div class="card-header" style="background:#fff;padding:20px 24px;border-bottom:1px solid #e2e8f0;">
+      <h2 style="font-size:1.2rem;font-weight:700;margin:0;color:#0f172a;">Describe Your Software Issue</h2>
+      <p style="margin:4px 0 0;font-size:0.875rem;color:#64748b;">Fill in the details below to raise your support ticket immediately.</p>
+    </div>
+
+    <div class="card-body" style="padding:24px;">
+      <form method="POST" action="{{ url_for('employee.raise_ticket') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Issue Description -->
+        <div class="form-group" style="margin-bottom:18px;">
+          <label class="form-label" for="issue_description" style="font-weight:700;display:flex;justify-content:space-between;">
+            <span>What is happening? <span style="color:#ef4444;">*</span></span>
+            <small style="color:#64748b;font-weight:400;">Min 10 characters</small>
+          </label>
+          <textarea class="form-control" id="issue_description" name="issue_description"
+            rows="5" minlength="10" maxlength="2000" required
+            placeholder="Example: When I try to access the CRM portal, I get an HTTP 503 error after clicking 'Submit'. This started happening this morning around 9:30 AM..."
+            style="resize:vertical;font-size:0.95rem;line-height:1.6;"></textarea>
+          <div class="form-text" style="color:#64748b;margin-top:5px;font-size:0.8rem;">
+            Include the app name, exact error message, and steps that trigger the problem. Never include passwords or API keys.
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label" for="category" style="font-weight:700;">Issue Category</label>
+            <select class="form-control" id="category" name="category" style="font-size:0.9rem;">
+              {% for cat in categories %}
+                <option value="{{ cat }}" {% if cat == 'general' %}selected{% endif %}>
+                  {{ category_labels.get(cat, cat|replace('_',' ')|title) }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Priority & Clearance Mode Selection -->
+          <div class="form-group">
+            <label class="form-label" for="priority" style="font-weight:700;">Priority &amp; Clearing Mode</label>
+            <select class="form-control" id="priority" name="priority" style="font-size:0.9rem;" onchange="updateRoutingBanner(this.value)">
+              <option value="Normal" selected>Normal — Simple issue (Cleared by AI automatically)</option>
+              <option value="Low">Low — Minor / simple inquiry (Cleared by AI automatically)</option>
+              <option value="High">High — Work heavily impacted (Manual ticket · Human clearance only)</option>
+              <option value="Urgent">Urgent — System down / emergency (Manual ticket · Human clearance only)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Mode Routing Banner (Dynamic) -->
+        <div id="routing-banner" style="background:#faf5ff;border:1.5px solid #d8b4fe;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+          <div id="routing-icon" style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:grid;place-items:center;flex-shrink:0;">
+            <i data-lucide="bot" style="width:20px;height:20px;"></i>
+          </div>
+          <div>
+            <div id="routing-title" style="font-size:11.5px;font-weight:800;color:#6b21a8;text-transform:uppercase;letter-spacing:0.8px;">
+              SIMPLE TICKET · AI AUTOMATED CLEARING
+            </div>
+            <div id="routing-desc" style="font-size:0.85rem;color:#334155;margin-top:2px;">
+              Normal and Low priority tickets are simple requests automatically diagnosed and <strong>cleared by ResolveAI</strong> with instant solution steps.
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100" style="background:#10b981;border-color:#10b981;padding:14px;font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 12px rgba(16,185,129,0.25);">
+          <i data-lucide="send" style="width:18px;height:18px;"></i>
+          Submit &amp; Raise Ticket &rarr;
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Side Column: Info & Stats -->
+  <aside style="display:flex;flex-direction:column;gap:18px;">
+    <!-- Safe IT Support Card -->
+    <section class="card" style="border-radius:12px;padding:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:34px;height:34px;border-radius:10px;background:#eef2ff;color:#6366f1;display:grid;place-items:center;">
+          <i data-lucide="shield" style="width:18px;height:18px;"></i>
+        </div>
+        <h3 style="margin:0;font-size:1rem;font-weight:700;">Safe Software Support</h3>
+      </div>
+      <p style="font-size:0.85rem;color:#64748b;line-height:1.6;margin:0;">
+        ResolveAI handles software-only issues: login errors, database timeouts, crashes, permissions, and app bugs. A ticket is only marked <strong>Resolved</strong> after you confirm the solution worked.
+      </p>
+    </section>
+
+    <!-- My Stats Summary -->
+    <section class="card" style="border-radius:12px;padding:20px;">
+      <h3 style="margin:0 0 14px 0;font-size:0.95rem;font-weight:700;color:#0f172a;">Your Ticket Summary</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <small style="color:#64748b;font-size:0.75rem;">Total Raised</small>
+          <strong style="display:block;font-size:1.4rem;color:#0f172a;">{{ stats.total }}</strong>
+        </div>
+        <div style="background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <small style="color:#64748b;font-size:0.75rem;">Currently Open</small>
+          <strong style="display:block;font-size:1.4rem;color:#eab308;">{{ stats.open }}</strong>
+        </div>
+        <div style="background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <small style="color:#64748b;font-size:0.75rem;">In Progress</small>
+          <strong style="display:block;font-size:1.4rem;color:#3b82f6;">{{ stats.in_progress }}</strong>
+        </div>
+        <div style="background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+          <small style="color:#64748b;font-size:0.75rem;">Resolved</small>
+          <strong style="display:block;font-size:1.4rem;color:#10b981;">{{ stats.resolved }}</strong>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- Recently Raised Tickets Section -->
+<section class="card" style="border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+  <div class="card-header" style="background:#fff;padding:18px 24px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <h3 style="margin:0;font-size:1.1rem;font-weight:700;">Your Recently Raised Tickets</h3>
+      <p style="margin:2px 0 0;font-size:0.825rem;color:#64748b;">Track the progress and outcomes of tickets you have submitted.</p>
+    </div>
+    <a href="{{ url_for('employee.tickets') }}" class="btn btn-secondary btn-sm">
+      View All My Tickets &rarr;
+    </a>
+  </div>
+
+  <div class="card-body" style="padding:0;">
+    <div class="table-wrapper" style="margin:0;border:0;">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticket ID</th>
+            <th>Issue Summary</th>
+            <th>Category</th>
+            <th>Routing Bar</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th style="text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in recent.items %}
+          <tr>
+            <td>
+              <a href="{{ url_for('employee.ticket_detail', ticket_id=t.ticket_id) }}" style="font-weight:700;font-family:monospace;color:var(--accent);">
+                {{ t.ticket_id }}
+              </a>
+            </td>
+            <td style="max-width:280px;">
+              <p style="margin:0;font-size:0.875rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ t.issue_description }}">
+                {{ t.issue_description }}
+              </p>
+            </td>
+            <td>
+              <span class="badge" style="background:#f1f5f9;color:#475569;font-size:10px;text-transform:uppercase;">
+                {{ t.category|replace('_',' ')|title }}
+              </span>
+            </td>
+            <td>
+              {% if t.routing_method == 'ai' %}
+                <span class="badge" style="background:#f3e8ff;color:#7e22ce;font-weight:700;">✦ AI Bar</span>
+              {% else %}
+                <span class="badge" style="background:#ecfdf5;color:#047857;font-weight:700;">👤 Manual Bar</span>
+              {% endif %}
+            </td>
+            <td><span class="badge badge-{{ t.priority|lower }}">{{ t.priority }}</span></td>
+            <td><span class="badge badge-{{ t.status|lower|replace(' ','-') }}">{{ t.status }}</span></td>
+            <td><small class="text-muted">{{ t.created_at.strftime('%b %d, %H:%M') if t.created_at else '' }}</small></td>
+            <td style="text-align:right;">
+              <a href="{{ url_for('employee.ticket_detail', ticket_id=t.ticket_id) }}" class="btn btn-secondary btn-sm" style="padding:5px 12px;font-size:11px;">
+                View &rarr;
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" style="text-align:center;padding:36px;color:#64748b;">
+              You have not raised any support tickets yet. Use the form above to raise your first ticket!
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<script>
+function updateRoutingBanner(val) {
+  const banner = document.getElementById('routing-banner');
+  const icon = document.getElementById('routing-icon');
+  const title = document.getElementById('routing-title');
+  const desc = document.getElementById('routing-desc');
+  if (val === 'High' || val === 'Urgent') {
+    banner.style.background = '#fff1f2';
+    banner.style.borderColor = '#fecdd3';
+    icon.style.background = '#f43f5e';
+    icon.innerHTML = '<i data-lucide="user-check" style="width:20px;height:20px;"></i>';
+    title.style.color = '#be123c';
+    title.innerText = 'MANUAL TICKET · HUMAN CLEARANCE ONLY';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> High and Urgent issues are routed directly to the <strong>Manual Support Queue</strong> for investigation and clearance by an IT Administrator or Engineer.';
+  } else {
+    banner.style.background = '#faf5ff';
+    banner.style.borderColor = '#d8b4fe';
+    icon.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+    icon.innerHTML = '<i data-lucide="bot" style="width:20px;height:20px;"></i>';
+    title.style.color = '#6b21a8';
+    title.innerText = 'SIMPLE TICKET · AI AUTOMATED CLEARING';
+    desc.innerHTML = '<strong>' + val + ' Priority:</strong> Simple ticket automatically diagnosed and <strong>cleared by ResolveAI</strong> with an instant step-by-step solution.';
+  }
+  if (window.lucide) lucide.createIcons();
+}
+</script>
+{% endblock %}

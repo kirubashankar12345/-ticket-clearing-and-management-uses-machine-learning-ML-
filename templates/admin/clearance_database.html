@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% block title %}Separate Ticket Clearance Database{% endblock %}
+{% block page_title %}Ticket Clearance Database{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.clearance_database') }}" class="nav-item active" style="font-weight:700;color:#6366f1;">
+    <i data-lucide="database"></i> Clearance Database
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.tickets', status='Open') }}" class="nav-item">
+    <i data-lucide="circle"></i> Open Tickets
+  </a>
+  <a href="{{ url_for('admin.tickets', status='Resolved') }}" class="nav-item">
+    <i data-lucide="check-circle"></i> Resolved Tickets
+  </a>
+  <a href="{{ url_for('admin.knowledge_base') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('admin.reports') }}" class="nav-item">
+    <i data-lucide="bar-chart-2"></i> Reports
+  </a>
+  <a href="{{ url_for('admin.settings') }}" class="nav-item">
+    <i data-lucide="settings"></i> Settings
+  </a>
+{% endblock %}
+
+{% block content %}
+<!-- DATABASE HEADER BANNER -->
+<div class="card mb-24" style="background:linear-gradient(135deg,#1e1b4b,#312e81);border:1px solid #4338ca;border-radius:16px;padding:24px;color:#fff;box-shadow:0 8px 30px rgba(49,46,129,0.25);">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:4px 12px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">
+        <i data-lucide="database" style="width:13px;height:13px;color:#a5b4fc;"></i>
+        SEPARATE AUDIT DATA STORE: ticket_audit.db
+      </div>
+      <h1 style="font-size:1.6rem;font-weight:800;margin:0 0 6px;color:#fff;">Dedicated Ticket Clearance Database</h1>
+      <p style="margin:0;font-size:0.9rem;color:#c7d2fe;max-width:800px;line-height:1.5;">
+        A standalone, dedicated database that logs <strong>who created each ticket</strong> (Employee name, ID, email &amp; problem statement) and <strong>who cleared each ticket</strong> (Resolver name, role, AI vs. Human &amp; solution statement).
+      </p>
+    </div>
+    <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 18px;text-align:right;">
+      <span style="font-size:11px;color:#c7d2fe;text-transform:uppercase;font-weight:700;">Database Path</span>
+      <div style="font-family:monospace;font-size:12px;color:#fff;margin-top:4px;">instance/ticket_audit.db</div>
+      <small style="color:#a5b4fc;font-size:11px;">SQLite Standalone File</small>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIT METRICS GRID -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin-bottom:24px;">
+  <div class="card" style="padding:18px;border-radius:12px;border:1px solid #e2e8f0;">
+    <span style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;">Total Tracked Tickets</span>
+    <div style="font-size:1.8rem;font-weight:800;color:#0f172a;margin-top:4px;">{{ stats.total }}</div>
+    <small style="color:#64748b;">In separate database</small>
+  </div>
+  <div class="card" style="padding:18px;border-radius:12px;border:1px solid #a7f3d0;background:#f0fdf4;">
+    <span style="font-size:11px;font-weight:800;color:#047857;text-transform:uppercase;">Cleared &amp; Resolved</span>
+    <div style="font-size:1.8rem;font-weight:800;color:#059669;margin-top:4px;">{{ stats.resolved }}</div>
+    <small style="color:#047857;">With full solution statement</small>
+  </div>
+  <div class="card" style="padding:18px;border-radius:12px;border:1px solid #c7d2fe;background:#f5f3ff;">
+    <span style="font-size:11px;font-weight:800;color:#4338ca;text-transform:uppercase;">Cleared by ResolveAI</span>
+    <div style="font-size:1.8rem;font-weight:800;color:#6366f1;margin-top:4px;">{{ stats.ai_cleared }}</div>
+    <small style="color:#4338ca;">Automated AI Engine fixes</small>
+  </div>
+  <div class="card" style="padding:18px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;">
+    <span style="font-size:11px;font-weight:800;color:#475569;text-transform:uppercase;">Cleared by Admin/Human</span>
+    <div style="font-size:1.8rem;font-weight:800;color:#334155;margin-top:4px;">{{ stats.manual_cleared }}</div>
+    <small style="color:#64748b;">Manual IT Administrator fixes</small>
+  </div>
+</div>
+
+<!-- AUDIT LEDGER TABLE CARD -->
+<div class="card" style="border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,0.04);">
+  <div class="card-header" style="background:#fff;padding:18px 22px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h2 style="font-size:1.25rem;font-weight:800;margin:0;color:#0f172a;">Ticket Clearance Ledger</h2>
+      <p style="margin:2px 0 0;font-size:0.85rem;color:#64748b;">Cross-audited creator vs resolver breakdown directly from <code>instance/ticket_audit.db</code></p>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <a href="{{ url_for('admin.clearance_database') }}" class="btn btn-sm {% if status_filter == 'all' and method_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+        All ({{ stats.total }})
+      </a>
+      <a href="{{ url_for('admin.clearance_database', status='resolved') }}" class="btn btn-sm {% if status_filter == 'resolved' %}btn-primary{% else %}btn-secondary{% endif %}">
+        ✓ Resolved ({{ stats.resolved }})
+      </a>
+      <a href="{{ url_for('admin.clearance_database', status='closed') }}" class="btn btn-sm {% if status_filter == 'closed' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if status_filter == 'closed' %}background:#1e293b;border-color:#1e293b;color:#fff;{% endif %}">
+        🔒 Closed ({{ stats.closed }})
+      </a>
+      <a href="{{ url_for('admin.clearance_database', method='ai') }}" class="btn btn-sm {% if method_filter == 'ai' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if method_filter == 'ai' %}background:#6366f1;border-color:#6366f1;color:#fff;{% endif %}">
+        ✦ Cleared by AI ({{ stats.ai_cleared }})
+      </a>
+      <a href="{{ url_for('admin.clearance_database', method='manual') }}" class="btn btn-sm {% if method_filter == 'manual' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if method_filter == 'manual' %}background:#10b981;border-color:#10b981;color:#fff;{% endif %}">
+        👤 Cleared by Admin ({{ stats.manual_cleared }})
+      </a>
+    </div>
+  </div>
+
+  <div class="card-body" style="padding:0;">
+    <div class="table-wrapper" style="margin:0;border:0;">
+      <table>
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="padding:14px 16px;">Ticket ID</th>
+            <th style="min-width:160px;">Who Created (Requester)</th>
+            <th style="min-width:220px;">Problem Statement Raised</th>
+            <th style="min-width:140px;">Clearance Method</th>
+            <th style="min-width:180px;">Who Cleared the Ticket</th>
+            <th style="min-width:180px;">Closed By (Administrator)</th>
+            <th style="min-width:240px;">Solution of the Problem</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+          <tr style="border-bottom:1px solid #f1f5f9;vertical-align:top;">
+            <!-- Ticket ID -->
+            <td style="padding:16px 18px;">
+              <a href="{{ url_for('admin.ticket_detail', ticket_id=r.ticket_id) }}" style="font-weight:800;font-family:monospace;color:#4f46e5;font-size:0.95rem;">
+                {{ r.ticket_id }}
+              </a>
+              <div style="font-size:11px;color:#94a3b8;margin-top:4px;">
+                Cat: {{ (r.category or 'general')|replace('_',' ')|title }}
+              </div>
+            </td>
+
+            <!-- WHO CREATED THE TICKET -->
+            <td style="padding:16px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:28px;height:28px;border-radius:6px;background:#eef2ff;color:#4f46e5;display:grid;place-items:center;font-size:12px;flex-shrink:0;">
+                  <i data-lucide="user" style="width:14px;height:14px;"></i>
+                </div>
+                <div>
+                  <strong style="color:#0f172a;font-size:0.9rem;display:block;">{{ r.creator_employee_name }}</strong>
+                  <span class="badge" style="background:#e0e7ff;color:#3730a3;font-size:10.5px;font-weight:700;">
+                    Employee ID: #{{ r.creator_employee_id }}
+                  </span>
+                </div>
+              </div>
+              <small style="display:block;color:#64748b;font-size:11px;margin-top:4px;">{{ r.creator_employee_email }}</small>
+              <small style="display:block;color:#94a3b8;font-size:10.5px;margin-top:2px;">
+                Opened: {{ r.created_at[:16] if r.created_at else '' }}
+              </small>
+            </td>
+
+            <!-- PROBLEM STATEMENT RAISED -->
+            <td style="padding:16px;">
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:0.875rem;line-height:1.5;color:#1e293b;">
+                {{ r.problem_statement }}
+              </div>
+              <div style="margin-top:6px;display:flex;gap:6px;">
+                <span class="badge badge-{{ r.priority|lower }}" style="font-size:10px;padding:2px 6px;">{{ r.priority }} Priority</span>
+              </div>
+            </td>
+
+            <!-- CLEARANCE METHOD (AI vs MANUAL) -->
+            <td style="padding:16px;">
+              {% if r.resolution_method == 'AI' %}
+                <span class="badge" style="background:#f3e8ff;color:#6b21a8;border:1.5px solid #d8b4fe;padding:6px 10px;font-size:11px;font-weight:800;border-radius:7px;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(107,33,168,0.08);">
+                  <i data-lucide="bot" style="width:14px;height:14px;"></i> ✦ AI CLEARING
+                </span>
+                <small style="display:block;color:#7e22ce;font-size:10px;font-weight:700;margin-top:4px;">Automated Engine</small>
+              {% elif r.resolution_method == 'Manual' %}
+                <span class="badge" style="background:#ecfdf5;color:#047857;border:1.5px solid #a7f3d0;padding:6px 10px;font-size:11px;font-weight:800;border-radius:7px;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(4,120,87,0.08);">
+                  <i data-lucide="user-check" style="width:14px;height:14px;"></i> 👤 MANUAL CLEARING
+                </span>
+                <small style="display:block;color:#047857;font-size:10px;font-weight:700;margin-top:4px;">Human Support Admin</small>
+              {% else %}
+                <span class="badge badge-open" style="font-size:10.5px;">● PENDING</span>
+              {% endif %}
+            </td>
+
+            <!-- WHO CLEARED THE TICKET (RESOLVER) -->
+            <td style="padding:16px;">
+              {% if r.status in ('Resolved', 'Closed') %}
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:28px;height:28px;border-radius:6px;background:{% if r.resolution_method == 'AI' %}#f3e8ff;color:#7e22ce{% else %}#ecfdf5;color:#047857{% endif %};display:grid;place-items:center;font-size:12px;flex-shrink:0;">
+                    <i data-lucide="{% if r.resolution_method == 'AI' %}bot{% else %}shield-check{% endif %}" style="width:14px;height:14px;"></i>
+                  </div>
+                  <div>
+                    <strong style="color:{% if r.resolution_method == 'AI' %}#4338ca{% else %}#065f46{% endif %};font-size:0.9rem;display:block;">
+                      {{ r.cleared_by_name or ('ResolveAI Automated Engine' if r.resolution_method == 'AI' else 'Admin User') }}
+                    </strong>
+                    {% if r.resolution_method == 'AI' %}
+                      <span class="badge" style="background:#ede9fe;color:#5b21b6;font-size:10px;font-weight:700;">AI Support Engine</span>
+                    {% else %}
+                      <span class="badge" style="background:#e0e7ff;color:#3730a3;font-size:10px;font-weight:800;border:1px solid #c7d2fe;">
+                        Admin ID: #{{ r.cleared_by_id or 1 }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if r.cleared_by_email %}
+                  <small style="display:block;color:#64748b;font-size:11px;margin-top:3px;">{{ r.cleared_by_email }}</small>
+                {% endif %}
+                <small style="display:block;color:#059669;font-size:10.5px;margin-top:2px;font-weight:700;">
+                  Cleared: {{ r.cleared_at[:16] if r.cleared_at else '' }}
+                </small>
+              {% else %}
+                <span style="color:#94a3b8;font-size:0.85rem;font-style:italic;">Pending clearance...</span>
+              {% endif %}
+            </td>
+
+            <!-- CLOSED BY (ADMINISTRATOR) -->
+            <td style="padding:16px;">
+              {% if r.status == 'Closed' %}
+                <div style="background:#0f172a;color:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 2px 8px rgba(15,23,42,0.15);">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+                    <i data-lucide="lock" style="width:12px;height:12px;color:#34d399;"></i>
+                    <span style="font-size:9.5px;font-weight:800;color:#34d399;text-transform:uppercase;letter-spacing:0.5px;">CLOSED BY ADMIN:</span>
+                  </div>
+                  <div style="font-size:0.9rem;font-weight:800;color:#fff;">
+                    {{ r.closed_by_name or 'Admin User' }}
+                  </div>
+                  <div style="margin-top:3px;">
+                    <span class="badge" style="background:#3b82f6;color:#fff;font-size:10px;font-weight:800;padding:2px 8px;">
+                      Admin ID: #{{ r.closed_by_id or 1 }}
+                    </span>
+                  </div>
+                  {% if r.closed_by_email %}
+                    <small style="display:block;color:#cbd5e1;font-size:10.5px;margin-top:3px;">{{ r.closed_by_email }}</small>
+                  {% endif %}
+                  {% if r.closed_at %}
+                    <small style="display:block;color:#94a3b8;font-size:10px;margin-top:2px;">Closed: {{ r.closed_at[:16] }}</small>
+                  {% endif %}
+                  {% if r.closing_notes %}
+                    <div style="margin-top:5px;padding:3px 6px;background:rgba(255,255,255,0.08);border-radius:4px;color:#f1f5f9;font-size:10.5px;font-style:italic;line-height:1.4;">
+                      "{{ r.closing_notes }}"
+                    </div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <span class="text-muted" style="font-size:11.5px;font-style:italic;">Not Closed Yet</span>
+              {% endif %}
+            </td>
+
+            <!-- SOLUTION STATEMENT -->
+            <td style="padding:16px;">
+              {% if r.solution_statement %}
+                <div style="background:{% if r.resolution_method == 'AI' %}#faf5ff;border:1px solid #d8b4fe{% else %}#f0fdf4;border:1px solid #a7f3d0{% endif %};border-radius:8px;padding:10px 12px;font-size:0.85rem;line-height:1.5;color:#0f172a;max-height:140px;overflow-y:auto;white-space:pre-wrap;">{{ r.solution_statement }}</div>
+              {% else %}
+                <span style="color:#94a3b8;font-size:0.85rem;font-style:italic;">Not resolved yet</span>
+              {% endif %}
+            </td>
+
+            <!-- STATUS -->
+            <td style="padding:16px;white-space:nowrap;">
+              {% if r.status == 'Closed' %}
+                <span class="badge" style="background:#1e293b;color:#fff;font-weight:800;padding:5px 10px;border-radius:99px;font-size:11px;">
+                  🔒 CLOSED
+                </span>
+              {% elif r.status == 'Resolved' %}
+                <span class="badge" style="background:#10b981;color:#fff;font-weight:800;padding:5px 10px;border-radius:99px;font-size:11px;">
+                  ✓ RESOLVED
+                </span>
+              {% else %}
+                <span class="badge badge-open" style="font-size:11px;padding:5px 10px;">
+                  ● OPEN
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;padding:40px;color:#64748b;">
+              No audit records found matching the filter.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

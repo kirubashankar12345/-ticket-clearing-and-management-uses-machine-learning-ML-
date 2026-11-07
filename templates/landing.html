@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResolveAI — AI-Powered Software IT Support</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="landing-body">
+
+  <!-- Navigation -->
+  <nav class="landing-nav">
+    <a href="{{ url_for('main.landing') }}" class="landing-nav-brand">
+      <div class="brand-icon">
+        <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+      </div>
+      ResolveAI
+    </a>
+    <div class="landing-nav-links">
+      <a href="{{ url_for('kb.index') }}" class="btn btn-secondary btn-sm">Knowledge Base</a>
+      {% if current_user.is_authenticated %}
+        {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-sm">Admin Dashboard</a>
+        {% elif current_user.role == 'engineer' %}
+          <a href="{{ url_for('engineer.dashboard') }}" class="btn btn-primary btn-sm">My Dashboard</a>
+        {% else %}
+          <a href="{{ url_for('employee.raise_ticket') }}" class="btn btn-primary btn-sm">Raise Ticket</a>
+        {% endif %}
+      {% else %}
+        <a href="{{ url_for('auth.login', portal='user') }}" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:5px;">
+          <i data-lucide="ticket" style="width:14px;height:14px;"></i> User Login
+        </a>
+        <a href="{{ url_for('auth.login', portal='admin') }}" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:5px;">
+          <i data-lucide="shield" style="width:14px;height:14px;"></i> Admin Login
+        </a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Resolve Software Issues <span>Faster with AI</span></h1>
+    <p>ResolveAI automates software troubleshooting, creates support tickets instantly, and ensures every issue is resolved with your confirmation — keeping your team productive.</p>
+    <div class="hero-buttons">
+      <a href="{{ url_for('auth.login', portal='user') }}" class="hero-btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
+        <i data-lucide="ticket" style="width:18px;height:18px;"></i> Raise a Support Ticket
+      </a>
+      <a href="{{ url_for('auth.login', portal='admin') }}" class="hero-btn-secondary" style="display:inline-flex;align-items:center;gap:8px;">
+        <i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> Admin Portal &amp; Overview
+      </a>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything your team needs</h2>
+      <p class="section-subtitle">From AI-powered troubleshooting to complete ticket lifecycle management, ResolveAI handles it all.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i data-lucide="bot" style="width:22px;height:22px;"></i>
+        </div>
+        <h3>AI Troubleshooting</h3>
+        <p>Intelligent natural language understanding that diagnoses software issues, asks clarifying questions, and recommends step-by-step solutions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f0fdf4;color:var(--success);">
+          <i data-lucide="ticket" style="width:22px;height:22px;"></i>
+        </div>
+        <h3>Automated Ticket Creation</h3>
+        <p>Tickets are created automatically from chat conversations with all context captured — no manual data entry needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fffbeb;color:var(--warning);">
+          <i data-lucide="search" style="width:22px;height:22px;"></i>
+        </div>
+        <h3>Real-Time Tracking</h3>
+        <p>Track every ticket's status, view the full activity history, and receive notifications when engineers update your issue.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#faf5ff;color:var(--violet);">
+          <i data-lucide="check-circle" style="width:22px;height:22px;"></i>
+        </div>
+        <h3>Employee-Confirmed Resolution</h3>
+        <p>Tickets are only marked resolved after you confirm the fix worked. No premature closures — your satisfaction drives closure.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fef2f2;color:var(--danger);">
+          <i data-lucide="alert-triangle" style="width:22px;height:22px;"></i>
+        </div>
+        <h3>Smart Escalation</h3>
+        <p>High-priority and unresolved issues are automatically escalated to human support engineers with full context.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#eff6ff;color:var(--info);">
+          <i data-lucide="book-open" style="width:22px;height:22px;"></i>
+        </div>
+        <h3>Knowledge Base</h3>
+        <p>Searchable articles covering common software issues — login failures, API errors, crashes, and more — to help you self-serve.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <h3>{{ total_tickets }}</h3>
+        <p>Tickets Processed</p>
+      </div>
+      <div class="stat-item">
+        <h3>{{ resolved_tickets }}</h3>
+        <p>Issues Resolved</p>
+      </div>
+      <div class="stat-item">
+        <h3>{{ resolution_rate }}%</h3>
+        <p>Resolution Rate</p>
+      </div>
+      <div class="stat-item">
+        <h3>9</h3>
+        <p>Issue Categories</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-it-works">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">From problem to resolution in minutes</h2>
+    </div>
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Describe your software issue</h3>
+          <p>Tell the AI chatbot what's going wrong in plain language — no technical jargon required.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>AI diagnoses and recommends solutions</h3>
+          <p>ResolveAI classifies your issue, searches the knowledge base, and provides tailored troubleshooting steps.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Try the solution</h3>
+          <p>Follow the recommended steps. The AI walks you through each one and answers follow-up questions.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Confirm resolution or escalate</h3>
+          <p>Tell us whether it worked. If it did, the ticket is resolved. If not, a support engineer takes over immediately.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h3>Engineer follow-up (if needed)</h3>
+          <p>For escalated issues, assigned engineers get full context and history, resolving issues faster with no repeated explanations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-links">
+      <a href="{{ url_for('kb.index') }}">Knowledge Base</a>
+      <a href="{{ url_for('auth.user_login') }}">User Login (Raise Ticket)</a>
+      <a href="{{ url_for('auth.admin_login') }}">Admin Login</a>
+      <a href="{{ url_for('auth.register') }}">Create Account</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+    <p style="font-size:0.85rem;">© {{ 2024 }} ResolveAI. Software IT support for everyone.</p>
+  </footer>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

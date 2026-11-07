@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block page_title %}Knowledge Base{% endblock %}
+
+{% block sidebar %}
+  {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> Admin Dashboard
+    </a>
+  {% elif current_user.role == 'engineer' %}
+    <a href="{{ url_for('engineer.dashboard') }}" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> My Dashboard
+    </a>
+  {% else %}
+    <a href="{{ url_for('employee.dashboard') }}" class="nav-item">
+      <i data-lucide="layout-dashboard"></i> Overview
+    </a>
+    <a href="{{ url_for('employee.chat') }}" class="nav-item">
+      <i data-lucide="message-circle"></i> AI Support Chat
+    </a>
+    <a href="{{ url_for('employee.tickets') }}" class="nav-item">
+      <i data-lucide="ticket"></i> My Tickets
+    </a>
+  {% endif %}
+  <a href="{{ url_for('kb.index') }}" class="nav-item active">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-center gap-8 mb-16">
+  <a href="{{ url_for('kb.index') }}" class="btn btn-secondary btn-sm">
+    <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back
+  </a>
+  <span class="badge badge-info">{{ (article.category or 'general')|replace('_',' ')|title }}</span>
+</div>
+
+<div class="kb-article">
+  <div class="card">
+    <div class="card-body" style="padding:32px;">
+      <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:8px;">{{ article.title }}</h1>
+      <p class="text-muted" style="font-size:0.82rem;margin-bottom:24px;">
+        Last updated {{ article.updated_at.strftime('%B %d, %Y') if article.updated_at else '—' }}
+      </p>
+
+      {% if article.symptoms %}
+      <h2>
+        <i data-lucide="activity" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;color:var(--accent);"></i>
+        Symptoms
+      </h2>
+      <p style="white-space:pre-wrap;">{{ article.symptoms }}</p>
+      {% endif %}
+
+      {% if article.causes %}
+      <h2>
+        <i data-lucide="help-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;color:var(--warning);"></i>
+        Common Causes
+      </h2>
+      <p style="white-space:pre-wrap;">{{ article.causes }}</p>
+      {% endif %}
+
+      <h2>
+        <i data-lucide="check-circle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;color:var(--success);"></i>
+        Solution
+      </h2>
+      <div style="white-space:pre-wrap;line-height:1.8;color:var(--text-secondary);">{{ article.solution }}</div>
+
+      {% if article.escalation %}
+      <h2 style="margin-top:24px;">
+        <i data-lucide="alert-triangle" style="width:18px;height:18px;display:inline;vertical-align:middle;margin-right:6px;color:var(--danger);"></i>
+        When to Escalate
+      </h2>
+      <p style="white-space:pre-wrap;">{{ article.escalation }}</p>
+      {% endif %}
+
+      <div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--border);">
+        <p class="text-muted" style="font-size:0.85rem;">Still having trouble?</p>
+        <div class="d-flex gap-8 mt-8">
+          <a href="{{ url_for('employee.chat') }}" class="btn btn-primary btn-sm">
+            <i data-lucide="message-circle" style="width:14px;height:14px;"></i>
+            Start AI Chat
+          </a>
+          <a href="{{ url_for('kb.index') }}" class="btn btn-secondary btn-sm">
+            Browse More Articles
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

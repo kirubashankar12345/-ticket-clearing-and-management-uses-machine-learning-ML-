@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}AI Support Chat{% endblock %}
+{% block page_title %}AI Support Chat{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('employee.raise_ticket') }}" class="nav-item {% if request.endpoint == 'employee.raise_ticket' %}active{% endif %}" style="font-weight:700;color:#10b981;">
+    <i data-lucide="plus-circle"></i> Raise Ticket
+  </a>
+  <a href="{{ url_for('employee.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('employee.chat') }}" class="nav-item active">
+    <i data-lucide="message-circle"></i> AI Support Chat
+  </a>
+  <a href="{{ url_for('employee.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> My Tickets
+  </a>
+  <a href="{{ url_for('kb.index') }}" class="nav-item">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('employee.profile') }}" class="nav-item">
+    <i data-lucide="user"></i> Profile
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout" style="margin:-28px;height:calc(100vh - 56px);">
+
+  <section class="support-modes-overview" aria-labelledby="support-modes-title">
+    <div class="support-modes-heading">
+      <h1 id="support-modes-title">Support options</h1>
+      <span>New tickets go to manual support. Administrators can start AI clearing for the open-ticket queue.</span>
+    </div>
+    <div class="support-mode-options">
+      <div class="support-mode-card">
+        <i data-lucide="bot"></i>
+        <strong>AI Troubleshooting</strong>
+        <span>When ticket volume is high, ResolveAI troubleshoots automatically and waits for your confirmation before resolving.</span>
+      </div>
+      <div class="support-mode-card">
+        <i data-lucide="headphones"></i>
+        <strong>Manual Support</strong>
+        <span>An admin or assigned engineer reviews and resolves your ticket.</span>
+      </div>
+    </div>
+    <p class="support-mode-routing-note">
+      Current mode: <strong>{{ 'AI Automatic Mode' if routing.mode == 'ai' else 'Manual Support Mode' }}</strong>
+      ({{ routing.recent_count }} ticket(s) in the last {{ routing.window_minutes }} minutes;
+      AI activates at {{ routing.threshold }}). Routing is selected automatically.
+    </p>
+  </section>
+
+  {% if support_mode == 'manual' %}
+  <section class="manual-support-panel" id="manual-support-panel" aria-labelledby="manual-support-title">
+    <div class="support-mode-heading">
+      <h1 id="manual-support-title">Manual support</h1>
+      <p>Describe your issue and a support team member will follow up. New tickets use manual support while the recent ticket count is below the AI threshold.</p>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h2>Create a support ticket</h2>
+        <p class="text-secondary">Your request will be sent directly to the support team.</p>
+        <form id="manual-ticket-form">
+          <div class="form-group">
+            <label class="form-label" for="manual-issue">What do you need help with?</label>
+            <textarea class="form-control" id="manual-issue" name="issue_description"
+              rows="5" minlength="10" maxlength="2000" required
+              placeholder="Describe what happened and what you were trying to do."></textarea>
+            <div class="form-text">Please enter at least 10 characters.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-category">Category</label>
+            <select class="form-control" id="manual-category" name="category">
+              <option value="general">General software support</option>
+              <option value="login">Login and authentication</option>
+              <option value="password">Password and account access</option>
+              <option value="crashes">Application crashes and errors</option>
+              <option value="api_errors">API and server errors</option>
+              <option value="database">Database and SQL issues</option>
+              <option value="installation">Software installation and updates</option>
+              <option value="permissions">Application permissions</option>
+              <option value="web_bugs">Web application bugs</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="manual-priority">Priority</label>
+            <select class="form-control" id="manual-priority" name="priority">
+              <option>Normal</option>
+              <option>Low</option>
+              <option>High</option>
+              <option>Urgent</option>
+            </select>
+          </div>
+          <p id="manual-ticket-error" class="text-danger" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary" id="manual-ticket-submit">
+            Submit to support team
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+  {% else %}
+  <section class="chat-session" id="ai-support-panel" aria-label="AI support chat">
+    <div class="chat-ticket-context">
+      <strong>AI support</strong>
+      {% if linked_ticket %}
+      <span>Continue troubleshooting and resolving your linked ticket.</span>
+      {% elif messages %}
+      <span>Continue your existing ResolveAI conversation.</span>
+      {% else %}
+      <span>Continue troubleshooting. ResolveAI will ask you to confirm before marking any ticket resolved.</span>
+      {% endif %}
+    </div>
+
+  <!-- Suggested prompts -->
+  <div class="chat-suggestions">
+    <span style="font-size:0.78rem;color:var(--text-muted);margin-right:4px;">Try:</span>
+    <button class="suggestion-chip" data-text="I can't log into my work account">Can't log in</button>
+    <button class="suggestion-chip" data-text="My application keeps crashing">App crashing</button>
+    <button class="suggestion-chip" data-text="I'm getting HTTP 500 error">HTTP 500 error</button>
+    <button class="suggestion-chip" data-text="I need to reset my password">Password reset</button>
+    <button class="suggestion-chip" data-text="Database connection is timing out">DB timeout</button>
+    <button class="suggestion-chip" data-text="Software installation is failing">Install failure</button>
+  </div>
+
+  {% if linked_ticket %}
+  <div class="chat-ticket-context">
+    <strong>Tracking {{ linked_ticket.ticket_id }}</strong>
+    <span>{{ linked_ticket.status }} · {{ linked_ticket.priority }} priority</span>
+    <span>ResolveAI asks you to confirm a fix before resolving an AI-routed ticket. If it is still broken, say “not fixed” to send it to a person.</span>
+  </div>
+  {% endif %}
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chat-messages">
+    <!-- Welcome message -->
+    <div class="chat-message-wrap ai">
+      <div class="chat-bubble chat-bubble-ai">
+        <strong>👋 Hi {{ current_user.name.split()[0] }}, I'm ResolveAI!</strong>
+        <p style="margin-top:8px;">I'm here to help you troubleshoot software issues. Describe what's happening and I'll guide you through the fix.</p>
+        <p>I can help with: login issues, password resets, app crashes, API errors, database problems, software installation, and more.</p>
+      </div>
+      <div class="chat-meta">ResolveAI · just now</div>
+    </div>
+
+    <!-- Render existing messages from DB -->
+    {% for msg in messages %}
+    <div class="chat-message-wrap {{ 'user' if msg.role == 'user' else 'ai' }}">
+      <div class="chat-bubble {{ 'chat-bubble-user' if msg.role == 'user' else 'chat-bubble-ai' }}">
+        {{ msg.content }}
+      </div>
+      <div class="chat-meta">
+        {% if msg.role == 'user' %}{{ current_user.name }} (Employee ID #{{ current_user.id }}){% else %}ResolveAI{% endif %} ·
+        {{ msg.created_at.strftime('%H:%M') if msg.created_at else '' }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Input area -->
+  <div class="chat-footer">
+    <div class="chat-input-row">
+      <textarea
+        class="chat-input"
+        id="chat-input"
+        placeholder="Describe your software issue..."
+        rows="1"
+        aria-label="Chat message"
+      ></textarea>
+      <button class="chat-send-btn" id="chat-send-btn" aria-label="Send message">
+        <i data-lucide="send" style="width:17px;height:17px;"></i>
+      </button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;text-align:center;">
+      Press Enter to send · Shift+Enter for new line · ResolveAI handles software issues only
+    </p>
+  </div>
+  </section>
+  {% endif %}
+</div>
+
+<!-- Chat container with conversation data -->
+<div id="chat-container"
+  data-conversation-id="{{ conversation_id or '' }}"
+  data-active-ticket-id="{{ linked_ticket.ticket_id if linked_ticket else '' }}"
+  style="display:none;">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

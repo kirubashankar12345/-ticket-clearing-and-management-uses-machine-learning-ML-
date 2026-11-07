@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Article' if article else 'New Article' }}{% endblock %}
+{% block page_title %}{{ 'Edit Article' if article else 'New Article' }}{% endblock %}
+
+{% block sidebar %}
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+    <i data-lucide="layout-dashboard"></i> Overview
+  </a>
+  <a href="{{ url_for('admin.tickets') }}" class="nav-item">
+    <i data-lucide="ticket"></i> All Tickets
+  </a>
+  <a href="{{ url_for('admin.engineers') }}" class="nav-item">
+    <i data-lucide="users"></i> Support Engineers
+  </a>
+  <a href="{{ url_for('admin.knowledge_base') }}" class="nav-item active">
+    <i data-lucide="book-open"></i> Knowledge Base
+  </a>
+  <a href="{{ url_for('admin.reports') }}" class="nav-item">
+    <i data-lucide="bar-chart-2"></i> Reports
+  </a>
+  <a href="{{ url_for('admin.settings') }}" class="nav-item">
+    <i data-lucide="settings"></i> Settings
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-center gap-8 mb-16">
+  <a href="{{ url_for('admin.knowledge_base') }}" class="btn btn-secondary btn-sm">
+    <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Back
+  </a>
+</div>
+
+<div style="max-width:760px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">{{ 'Edit' if article else 'New' }} KB Article</span>
+      {% if article %}
+      <span class="badge
+        {% if article.status == 'published' %}badge-success
+        {% elif article.status == 'archived' %}badge-closed
+        {% else %}badge-warning{% endif %}">
+        {{ article.status|title }}
+      </span>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <form method="POST"
+        action="{{ url_for('admin.knowledge_base_article', article_id=article.id) if article else url_for('admin.knowledge_base_new') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label class="form-label">Title <span style="color:var(--danger);">*</span></label>
+          <input type="text" name="title" class="form-control" required
+            value="{{ article.title if article else '' }}"
+            placeholder="e.g. Resolving Login Failures">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-select">
+            {% set cats = [('login','Login'), ('password','Password'), ('crashes','App Crashes'),
+              ('api_errors','API Errors'), ('database','Database'), ('installation','Installation'),
+              ('permissions','Permissions'), ('web_bugs','Web Bugs'), ('general','General')] %}
+            {% for val, label in cats %}
+            <option value="{{ val }}" {{ 'selected' if article and article.category == val else '' }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Symptoms</label>
+          <textarea name="symptoms" class="form-control" rows="3"
+            placeholder="What symptoms does the user experience?">{{ article.symptoms if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Causes</label>
+          <textarea name="causes" class="form-control" rows="3"
+            placeholder="What are the common causes?">{{ article.causes if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Solution <span style="color:var(--danger);">*</span></label>
+          <textarea name="solution" class="form-control" rows="8" required
+            placeholder="Step-by-step solution...">{{ article.solution if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Escalation Notes</label>
+          <textarea name="escalation" class="form-control" rows="2"
+            placeholder="When should this be escalated?">{{ article.escalation if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-select">
+            <option value="draft" {{ 'selected' if article and article.status == 'draft' else '' }}>Draft</option>
+            <option value="published" {{ 'selected' if article and article.status == 'published' else '' }}>Published</option>
+            <option value="archived" {{ 'selected' if article and article.status == 'archived' else '' }}>Archived</option>
+          </select>
+        </div>
+
+        <div class="d-flex gap-8 mt-16">
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save" style="width:15px;height:15px;"></i>
+            {{ 'Update Article' if article else 'Create Article' }}
+          </button>
+          <a href="{{ url_for('admin.knowledge_base') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
